@@ -51,8 +51,12 @@ class PoizonProductRaw:
 
 # product Detail
 class PoizonProduct:
-    def __init__(self, sizes, skuIds, spuId, floor_price, imgs, brand, brand_logo, title, desc):
+    def __init__(self, sizes, colors, sizeIds, prices, skuIds, spuId, floor_price, imgs, brand, brand_logo, title, desc):
+
         self.sizes = sizes
+        self.colors = colors
+        self.sizeIds = sizeIds
+        self.prices = prices
         self.skuIds = skuIds  # уникальный
         self.spuId = spuId # общий
         self.floor_price = floor_price
@@ -65,17 +69,24 @@ class PoizonProduct:
     @classmethod
     def parse_json(cls, json_data):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
-        sizes = [d["value"]  for d in raw_data.saleProperties["list"] if (d["name"] == "尺码")]
-        # for d in raw_data.saleProperties["list"]:
-        #     if (d["name"] == "尺码"):
-        #         sizes.append(d["value"])
-        # for d in raw_data.skus:
-        #     cls.skuIds.append(d["skuId"])
+
+        if "saleProperty" in raw_data.skus[0]["properties"][1]:
+            sizes = [d["properties"][1]["saleProperty"]["value"] for d in raw_data.skus]
+        else: sizes = None
+
+        colors = 0
+        sizeIds = [d["propertyValueId"]  for d in raw_data.saleProperties["list"] if (d["name"] == "尺码")]
+        prices = []
+        if ("price" in raw_data.skus[0]):
+            for d in raw_data.skus:
+                if d["price"]["prices"]:
+                    prices.append(d["price"]["prices"][0]["price"])
+                else:
+                    prices.append(0)
+        else: prices = None
         skus = [d["skuId"] for d in raw_data.skus]
         spuId = raw_data.detail["spuId"]
         floor_price = raw_data.price["item"]["floorPrice"]
-        # for i in raw_data.image["spuImage"]["images"]:
-        #     cls.imgs.append(i["url"])
         imgs = [d["url"] for d in raw_data.image["spuImage"]["images"]]
         brand = raw_data.brandRootInfo["brandItemList"][0]["brandName"]
         brand_logo = raw_data.brandRootInfo["brandItemList"][0]["brandLogo"]
@@ -83,6 +94,9 @@ class PoizonProduct:
         desc = raw_data.detail["desc"]
         return cls(
             sizes=sizes,
+            colors=colors,
+            sizeIds=sizeIds,
+            prices=prices,
             skuIds=skus,
             spuId=spuId,
             floor_price=floor_price,
@@ -93,49 +107,13 @@ class PoizonProduct:
 
 
 if (__name__ == "__main__"):
-    with open('data.json', 'r') as f:
+    with open('productDetailWithPrice.json', 'r') as f:
         dictData = json.load(f)
+
     a = PoizonProduct.parse_json(json_data=dictData)
-    print(a.imgs)
-# sizes = []
-# propertyValueIds = []
-# skus = []
-# spu: int
-# title: str
-# # to get sizes
-# for d in dictData["saleProperties"]["list"]:
-#     if (d["name"] == "尺码"):
-#         sizes.append(d["value"])
-# # to get propertyValueId
-# for d in dictData["saleProperties"]["list"]:
-#     if (d["name"] == "尺码"):
-#         propertyValueIds.append(d["propertyValueId"])
-# # to get skus
-# for d in dictData["skus"]:
-#     skus.append(d["skuId"])
-# # to get spuId
-# spu = dictData["detail"]["spuId"]
-#
-# # to get title
-# title = dictData["detail"]["title"]
-#
-# #to get desc
-# desc = dictData["detail"]["desc"]
-# #to get images
-# images = []
-# for i in dictData["image"]["spuImage"]["images"]:
-#     images.append(i["url"])
-#
-# # to get brand logo and brand
-# brand = dictData["brandRootInfo"]["brandItemList"][0]["brandName"]
-# brand_logo = dictData["brandRootInfo"]["brandItemList"][0]["brandLogo"]
-# print(f"sizes = {sizes}")
-# print(propertyValueIds)
-# print(f"skus_list = {skus}\n")
-# print(f"spu = {spu}\n")
-# print(f"title= {title}\n")
-# print(f"desc= {desc}\n")
-# print(f"brand= {brand}\n")
-# print(f"brand_logo= {brand_logo}\n")
-# print(f"imgs = {images}")
-#
+    print(f"sizeIDs = {a.sizeIds}")
+    print(f"skuIds = {a.skuIds}")
+    print(f"sizes = {a.sizes}")
+    print(f"prices = {a.prices}\n")
+
+
