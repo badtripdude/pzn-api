@@ -56,7 +56,7 @@ class PoizonProduct:
     '''
     класс для хранения уже распарсенных данных
     '''
-    def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price, all_images, brand, brand_logo, title, desc):
+    def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price, current_images, brand, brand_logo, title, desc):
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
         self.current_colors: List[str] = current_colors
@@ -66,7 +66,7 @@ class PoizonProduct:
         self.skuIds: List[int] = skuIds  # уникальный
         self.spuId: int = spuId # общий
         self.floor_price: Optional[int] = floor_price
-        self.all_images: List[str] = all_images
+        self.current_images: List[str] = current_images
         self.brand: str = brand
         self.brand_logo: str = brand_logo
         self.title: str = title
@@ -81,7 +81,9 @@ class PoizonProduct:
         prices = []
         sizeIds = []
         colorIds = []
+        current_images = []
         for i in raw_data.skus:
+            current_images.append(i['logoUrl'])
             skus.append(i['skuId'])
             if 'price' in i:
                 prices.append(i["price"]["prices"][0]["price"] if i["price"]["prices"] else 0)
@@ -93,8 +95,6 @@ class PoizonProduct:
                     elif j["saleProperty"]["name"] == "尺码":
                         current_sizes.append(j["saleProperty"]["value"])
                         sizeIds.append(j["saleProperty"]["propertyValueId"])
-
-        all_images = [d["url"] for d in raw_data.image["spuImage"]["images"]]
         return cls(
             category=raw_data.detail["categoryName"],
             current_sizes=current_sizes,
@@ -105,14 +105,14 @@ class PoizonProduct:
             skuIds=skus,
             spuId=raw_data.detail["spuId"],
             floor_price=raw_data.price["item"]["floorPrice"] if raw_data.price else None,
-            all_images=all_images, brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
+            current_images=current_images, brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
             brand_logo = raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
             title = raw_data.detail["title"], desc = raw_data.detail["desc"]
         )
 
 
 if (__name__ == "__main__"):
-    with open('new.json', 'r') as f:
+    with open('data.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.parse_json(json_data=dictData)
@@ -130,11 +130,7 @@ if (__name__ == "__main__"):
     print(f"brand_logo = {a.brand_logo}")
     print(f"title = {a.title}")
     print(f"desc = {a.desc}")
-    print(f"all_images = {a.all_images}")
+    print(f"current_images = {a.current_images}")
     print(f"category = {a.category}")
 
 
-    for i in range(0, len(a.skuIds)):
-        print(f"skuId = {a.skuIds[i]}, size = {a.current_colors[i]}, price = {a.prices[i]}, img = {a.all_images[i]}")
-
-print(len(dictData["spuGroupList"]["list"]))
