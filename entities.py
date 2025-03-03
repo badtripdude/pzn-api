@@ -1,6 +1,5 @@
 import json
 from typing import Optional, List, Dict
-from unicodedata import category
 
 
 # class Product:
@@ -13,9 +12,10 @@ from unicodedata import category
 
 
 
-# parsing from json into ProductContainer
-#product Detail - floorPrice, spuID, skuID imgs, brand, brandLogo, detail.title, detail.desc
 class PoizonProductRaw:
+    '''
+    получение сырых данных с пойзона (практически сырой json)
+    '''
     def __init__(self, price, detail, frontLabelSummaryDTO, lastSold, image, spuGroupList, saleProperties, basicParam, favoriteData, brandRootInfo, sizeDto, relateProductInfo, shareInfo, skus):
         self.price: Dict= price
         self.detail: Dict = detail
@@ -52,8 +52,10 @@ class PoizonProductRaw:
         )
 
 
-# product Detail
 class PoizonProduct:
+    '''
+    класс для хранения уже распарсенных данных
+    '''
     def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price, all_images, brand, brand_logo, title, desc):
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
@@ -69,7 +71,7 @@ class PoizonProduct:
         self.brand_logo: str = brand_logo
         self.title: str = title
         self.desc: Optional[str]= desc
-
+# картинки соотносятся по цветам
     @classmethod
     def parse_json(cls, json_data):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
@@ -132,3 +134,7 @@ if (__name__ == "__main__"):
     print(f"category = {a.category}")
 
 
+    for i in range(0, len(a.skuIds)):
+        print(f"skuId = {a.skuIds[i]}, size = {a.current_colors[i]}, price = {a.prices[i]}, img = {a.all_images[i]}")
+
+print(len(dictData["spuGroupList"]["list"]))
