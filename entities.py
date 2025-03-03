@@ -1,5 +1,5 @@
 import json
-from typing import Optional, List
+from typing import Optional, List, Dict
 from unicodedata import category
 
 
@@ -17,20 +17,20 @@ from unicodedata import category
 #product Detail - floorPrice, spuID, skuID imgs, brand, brandLogo, detail.title, detail.desc
 class PoizonProductRaw:
     def __init__(self, price, detail, frontLabelSummaryDTO, lastSold, image, spuGroupList, saleProperties, basicParam, favoriteData, brandRootInfo, sizeDto, relateProductInfo, shareInfo, skus):
-        self.price = price
-        self.detail = detail
-        self.frontLabelSummaryDTO = frontLabelSummaryDTO
-        self.lastSold = lastSold
-        self.image = image
-        self.spuGroupList = spuGroupList
-        self.saleProperties = saleProperties
-        self.basicParam = basicParam
-        self.favoriteData = favoriteData
-        self.brandRootInfo = brandRootInfo
-        self.sizeDto = sizeDto
-        self.relateProductInfo = relateProductInfo
-        self.shareInfo = shareInfo
-        self.skus = skus
+        self.price: Dict= price
+        self.detail: Dict = detail
+        self.frontLabelSummaryDTO: Dict = frontLabelSummaryDTO
+        self.lastSold: Optional[Dict] = lastSold
+        self.image: Dict = image
+        self.spuGroupList: Optional[Dict] = spuGroupList
+        self.saleProperties: Optional[Dict] = saleProperties
+        self.basicParam: Dict = basicParam
+        self.favoriteData: Dict = favoriteData
+        self.brandRootInfo: Optional[Dict] = brandRootInfo
+        self.sizeDto: Optional[Dict] = sizeDto
+        self.relateProductInfo: Optional[Dict] = relateProductInfo
+        self.shareInfo: Optional[Dict] = shareInfo
+        self.skus: Optional[List[Dict]] = skus
 
     @classmethod
     def from_json(cls, json_data):
