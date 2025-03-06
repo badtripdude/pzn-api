@@ -1,4 +1,6 @@
+import abc
 import json
+from abc import ABC
 from typing import Optional, List, Dict
 
 
@@ -10,14 +12,21 @@ from typing import Optional, List, Dict
 #     category: str
 
 
+class JsonSerializable(ABC):
+    @classmethod
+    @abc.abstractmethod
+    def from_json(cls, json_data):
+        ...
 
 
-class PoizonProductRaw:
+class PoizonProductRaw(JsonSerializable):
     '''
     получение сырых данных с пойзона (практически сырой json)
     '''
-    def __init__(self, price, detail, frontLabelSummaryDTO, lastSold, image, spuGroupList, saleProperties, basicParam, favoriteData, brandRootInfo, sizeDto, relateProductInfo, shareInfo, skus):
-        self.price: Dict= price
+
+    def __init__(self, price, detail, frontLabelSummaryDTO, lastSold, image, spuGroupList, saleProperties, basicParam,
+                 favoriteData, brandRootInfo, sizeDto, relateProductInfo, shareInfo, skus):
+        self.price: Dict = price
         self.detail: Dict = detail
         self.frontLabelSummaryDTO: Dict = frontLabelSummaryDTO
         self.lastSold: Optional[Dict] = lastSold
@@ -52,11 +61,13 @@ class PoizonProductRaw:
         )
 
 
-class PoizonProduct:
+class PoizonProduct(JsonSerializable):
     '''
     класс для хранения уже распарсенных данных
     '''
-    def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price, current_images, brand, brand_logo, title, desc):
+
+    def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price,
+                 current_images, brand, brand_logo, title, desc):
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
         self.current_colors: List[str] = current_colors
@@ -64,16 +75,18 @@ class PoizonProduct:
         self.colorIds: Optional[List[str]] = colorIds
         self.prices: Optional[List[int]] = prices
         self.skuIds: List[int] = skuIds  # уникальный
-        self.spuId: int = spuId # общий
+        self.spuId: int = spuId  # общий
         self.floor_price: Optional[int] = floor_price
         self.current_images: List[str] = current_images
         self.brand: str = brand
         self.brand_logo: str = brand_logo
         self.title: str = title
-        self.desc: Optional[str]= desc
-# картинки соотносятся по цветам
+        self.desc: Optional[str] = desc
+
+    # картинки соотносятся по цветам
     @classmethod
-    def parse_json(cls, json_data):
+    def from_json(cls, json_data):
+
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         skus = []
         current_colors = []
@@ -106,8 +119,8 @@ class PoizonProduct:
             spuId=raw_data.detail["spuId"],
             floor_price=raw_data.price["item"]["floorPrice"] if raw_data.price else None,
             current_images=current_images, brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
-            brand_logo = raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
-            title = raw_data.detail["title"], desc = raw_data.detail["desc"]
+            brand_logo=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
+            title=raw_data.detail["title"], desc=raw_data.detail["desc"]
         )
 
 
@@ -115,14 +128,13 @@ if (__name__ == "__main__"):
     with open('data.json', 'r') as f:
         dictData = json.load(f)
 
-    a = PoizonProduct.parse_json(json_data=dictData)
+    a = PoizonProduct.from_json(json_data=dictData)
     print(f"sizeIDs = {a.sizeIds}")
     print(f"colorIds = {a.colorIds}")
     print(f"skuIds = {a.skuIds}")
     print(f"current_sizes = {a.current_sizes}")
     print(f"current_colors = {a.current_colors}")
     print(f"prices = {a.prices}\n")
-
 
     print(f"brand = {a.brand}")
     print(f"spuId = {a.spuId}")
@@ -132,5 +144,3 @@ if (__name__ == "__main__"):
     print(f"desc = {a.desc}")
     print(f"current_images = {a.current_images}")
     print(f"category = {a.category}")
-
-
