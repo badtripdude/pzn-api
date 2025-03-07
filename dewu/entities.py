@@ -66,8 +66,10 @@ class PoizonProduct(JsonSerializable):
     класс для хранения уже распарсенных данных
     '''
 
-    def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price,
+    def __init__(self, product_params, articul, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price,
                  current_images, brand, brand_logo, title, desc, size_table):
+        self.product_params: Dict = product_params
+        self.articul = articul
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
         self.current_colors: List[str] = current_colors
@@ -90,6 +92,7 @@ class PoizonProduct(JsonSerializable):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         skus, current_colors, current_sizes, prices, sizeIds, colorIds, current_images = ([] for _ in range(7))
         size_table = {}
+
         for i in raw_data.skus:
             current_images.append(i['logoUrl'])
             skus.append(i['skuId'])
@@ -103,11 +106,16 @@ class PoizonProduct(JsonSerializable):
                     elif j["saleProperty"]["name"] == "尺码":
                         current_sizes.append(j["saleProperty"]["value"])
                         sizeIds.append(j["saleProperty"]["propertyValueId"])
-
-        for i in raw_data.sizeDto["sizeInfo"]["sizeTemplate"]["list"]:
-            size_table[f"{i["sizeKey"]}"] = i["sizeValue"]
+        if "sizeInfo" in raw_data.sizeDto:
+            for i in raw_data.sizeDto["sizeInfo"]["sizeTemplate"]["list"]:
+                size_table[f"{i["sizeKey"]}"] = i["sizeValue"]
+        product_params = {}
+        for i in raw_data.basicParam['basicList']:
+            product_params[i["key"]] = i["value"]
 
         return cls(
+            product_params=product_params,
+            articul=raw_data.detail.get('articleNumber', None),
             category=raw_data.detail["categoryName"],
             current_sizes=current_sizes,
             current_colors=current_colors,
@@ -125,7 +133,7 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../data.json', 'r') as f:
+    with open('../cologne.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
@@ -145,4 +153,6 @@ if (__name__ == "__main__"):
     print(f"current_images = {a.current_images}")
     print(f"category = {a.category}")
     print(f"size_table = {a.size_table}")
+    print(f"product_params = {a.product_params}")
+    print(f"articul = {a.articul}")
 
