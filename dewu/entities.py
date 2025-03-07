@@ -67,7 +67,7 @@ class PoizonProduct(JsonSerializable):
     '''
 
     def __init__(self, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price,
-                 current_images, brand, brand_logo, title, desc):
+                 current_images, brand, brand_logo, title, desc, size_table):
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
         self.current_colors: List[str] = current_colors
@@ -82,19 +82,14 @@ class PoizonProduct(JsonSerializable):
         self.brand_logo: str = brand_logo
         self.title: str = title
         self.desc: Optional[str] = desc
+        self.size_table: List[int] = size_table
 
     # картинки соотносятся по цветам
     @classmethod
     def from_json(cls, json_data):
-
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
-        skus = []
-        current_colors = []
-        current_sizes = []
-        prices = []
-        sizeIds = []
-        colorIds = []
-        current_images = []
+        skus, current_colors, current_sizes, prices, sizeIds, colorIds, current_images = ([] for _ in range(7))
+        size_table = {}
         for i in raw_data.skus:
             current_images.append(i['logoUrl'])
             skus.append(i['skuId'])
@@ -108,6 +103,10 @@ class PoizonProduct(JsonSerializable):
                     elif j["saleProperty"]["name"] == "尺码":
                         current_sizes.append(j["saleProperty"]["value"])
                         sizeIds.append(j["saleProperty"]["propertyValueId"])
+
+        for i in raw_data.sizeDto["sizeInfo"]["sizeTemplate"]["list"]:
+            size_table[f"{i["sizeKey"]}"] = i["sizeValue"]
+
         return cls(
             category=raw_data.detail["categoryName"],
             current_sizes=current_sizes,
@@ -120,12 +119,13 @@ class PoizonProduct(JsonSerializable):
             floor_price=raw_data.price["item"]["floorPrice"] if raw_data.price else None,
             current_images=current_images, brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
             brand_logo=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
-            title=raw_data.detail["title"], desc=raw_data.detail["desc"]
+            title=raw_data.detail["title"], desc=raw_data.detail["desc"],
+            size_table=size_table
         )
 
 
 if (__name__ == "__main__"):
-    with open('data.json', 'r') as f:
+    with open('../data.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
@@ -144,3 +144,5 @@ if (__name__ == "__main__"):
     print(f"desc = {a.desc}")
     print(f"current_images = {a.current_images}")
     print(f"category = {a.category}")
+    print(f"size_table = {a.size_table}")
+
