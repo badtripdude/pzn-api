@@ -6,8 +6,7 @@ import aiohttp
 from aiohttp.client import _RequestOptions
 from aiohttp.typedefs import StrOrURL
 
-import entities
-from entities import JsonSerializable
+from .entities import JsonSerializable, PoizonProduct
 
 
 class Limiter:
@@ -87,7 +86,7 @@ class ProductSearchCard(JsonSerializable):
 class ProductSearchResult(JsonSerializable):
     def __init__(self,
                  total: int, page: int, last_id: str = None,
-                 product_list: list[dict] = None,
+                 product_list: list[ProductSearchCard] = None,
                  ):
         self.product_list = product_list
         self.last_id = last_id
@@ -100,10 +99,12 @@ class ProductSearchResult(JsonSerializable):
             total=json_data['total'],
             page=json_data['page'],
             last_id=json_data.get('lastId', None),
+            product_list=[ProductSearchCard.from_json(data) for data in json_data.get('productList', [])]
         )
 
 
 class Poizon:
+    # TODO: handle http errors
     BASE_API = 'https://poizon-api.com/api/dewu/'
 
     def __init__(self, api_key):
@@ -120,15 +121,15 @@ class Poizon:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.session.close()
 
-    async def get_product_detail_with_price(self, spu_id: int):
+    async def get_product_detail_with_price(self, spu_id: int) -> PoizonProduct:
         method = 'productDetailWithPrice'
         res = await self.session.request("GET", method, params={'spuId': spu_id})
-        return entities.PoizonProduct.parse_json(await res.json())
+        return entities.PoizonProduct.from_json(await res.json())
 
-    async def get_product_detail(self, spu_id: str):
+    async def get_product_detail(self, spu_id: str) -> PoizonProduct:
         method = 'productDetail'
         res = await self.session.request("GET", method, params={'spuId': spu_id})
-        return entities.PoizonProduct.parse_json(await res.json())
+        return entities.PoizonProduct.from_json(await res.json())
 
     async def search_products_v1(self, keyword: str, limit: int = 50, page: int = 0):
         method = 'searchProducts'
@@ -144,7 +145,7 @@ class Poizon:
                                  fit_id: list[int] = None, sort_type: int = None,
                                  sort_mode: int = None, limit: int = 50,
                                  page: int = 0,
-                                 ):
+                                 ) -> ProductSearchResult:
         # TODO: enums
         method = 'searchProducts/v2'
         params = {
@@ -163,4 +164,4 @@ class Poizon:
         filtered_params = {k: v for k, v in params.items() if v is not None}
         resp = await self.session.request('GET', method, params=filtered_params)
 
-        return await resp.json()
+        return ProductSearchResult.from_json(await resp.json())
