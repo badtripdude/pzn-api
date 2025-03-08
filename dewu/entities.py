@@ -66,18 +66,19 @@ class PoizonProduct(JsonSerializable):
     класс для хранения уже распарсенных данных
     '''
 
-    def __init__(self, product_params, articul, category, current_sizes, current_colors, sizeIds, colorIds, prices, skuIds, spuId, floor_price,
+    def __init__(self, product_params, articul, category, current_sizes, current_colors, size_ids, color_ids, prices,
+                 sku_ids, spu_id, floor_price,
                  current_images, brand, brand_logo, title, desc, size_table):
         self.product_params: Dict = product_params
         self.articul = articul
         self.category: str = category
         self.current_sizes: List[int] = current_sizes
         self.current_colors: List[str] = current_colors
-        self.sizeIds: Optional[List[int]] = sizeIds
-        self.colorIds: Optional[List[str]] = colorIds
+        self.size_ids: Optional[List[int]] = size_ids
+        self.color_ids: Optional[List[str]] = color_ids
         self.prices: Optional[List[int]] = prices
-        self.skuIds: List[int] = skuIds  # уникальный
-        self.spuId: int = spuId  # общий
+        self.sku_ids: List[int] = sku_ids  # уникальный
+        self.spu_id: int = spu_id  # общий
         self.floor_price: Optional[int] = floor_price
         self.current_images: List[str] = current_images
         self.brand: str = brand
@@ -86,13 +87,13 @@ class PoizonProduct(JsonSerializable):
         self.desc: Optional[str] = desc
         self.size_table: List[int] = size_table
 
-    # картинки соотносятся по цветам
+    # картинки соотносятся по цветам не по размерам
     @classmethod
     def from_json(cls, json_data):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         skus, current_colors, current_sizes, prices, sizeIds, colorIds, current_images = ([] for _ in range(7))
         size_table = {}
-
+        # TODO товары с доставкой через европу убрать из списка, категория айди
         for i in raw_data.skus:
             current_images.append(i['logoUrl'])
             skus.append(i['skuId'])
@@ -119,11 +120,11 @@ class PoizonProduct(JsonSerializable):
             category=raw_data.detail["categoryName"],
             current_sizes=current_sizes,
             current_colors=current_colors,
-            sizeIds=sizeIds,
-            colorIds=colorIds,
+            size_ids=sizeIds,
+            color_ids=colorIds,
             prices=prices,
-            skuIds=skus,
-            spuId=raw_data.detail["spuId"],
+            sku_ids=skus,
+            spu_id=raw_data.detail["spuId"],
             floor_price=raw_data.price["item"]["floorPrice"] if raw_data.price else None,
             current_images=current_images, brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
             brand_logo=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
@@ -133,19 +134,19 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../cologne.json', 'r') as f:
+    with open('../shoes_pdwp.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
-    print(f"sizeIDs = {a.sizeIds}")
-    print(f"colorIds = {a.colorIds}")
-    print(f"skuIds = {a.skuIds}")
+    print(f"sizeIDs = {a.size_ids}")
+    print(f"colorIds = {a.color_ids}")
+    print(f"skuIds = {a.sku_ids}")
     print(f"current_sizes = {a.current_sizes}")
     print(f"current_colors = {a.current_colors}")
     print(f"prices = {a.prices}\n")
 
     print(f"brand = {a.brand}")
-    print(f"spuId = {a.spuId}")
+    print(f"spu_id = {a.spu_id}")
     print(f"floor_price = {a.floor_price}")
     print(f"brand_logo = {a.brand_logo}")
     print(f"title = {a.title}")
@@ -155,4 +156,3 @@ if (__name__ == "__main__"):
     print(f"size_table = {a.size_table}")
     print(f"product_params = {a.product_params}")
     print(f"articul = {a.articul}")
-
