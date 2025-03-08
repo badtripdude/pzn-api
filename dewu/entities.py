@@ -2,7 +2,7 @@ import json
 from typing import Optional, List, Dict
 from base import JsonSerializable
 from poizon_parse_helpers import ParseSizes, ParseColors, ParseProductIds, ParseProductProperties, ParseBrandInfo, ParsePriceInfo
-from raw_data_handler import PoizonProductRaw
+from raw_data_handlers import PoizonProductRaw
 from base import NON_STATED
 # class Product:
 #     id: int
@@ -11,12 +11,31 @@ from base import NON_STATED
 #     images: list
 #     category: str
 
+class PoizonCategoryParser(JsonSerializable):
+    """
+    class for getting/updating categories list api: GET /getCategories
+    """
+
+    def __init__(self, categories: Dict[str, str]):
+        self.categories = categories
+
+    @classmethod
+    def from_json(cls, json_data):
+        categories = {}
+        for i in json_data:
+            categories[i["id"]] = i["name"]
+        return cls(categories=categories)
+
+
+
 class PoizonProduct(JsonSerializable):
     """
         class for parsing and keeping data from PoizonProductRaw
     """
 
     def __init__(self,
+                 all_images: List[str],
+                 current_images: List[str],
                  product_addictive_params: Dict[str, str] | NON_STATED,
                  article: str,
                  category: str | NON_STATED,
@@ -30,13 +49,14 @@ class PoizonProduct(JsonSerializable):
                  sku_ids: List[int] | NON_STATED,
                  spu_id: int,
                  floor_price: int | NON_STATED,
-                 current_images: List[str],
                  brand: str,
                  brand_logo: str,
                  brand_id: str,
                  title: str,
                  desc: str | NON_STATED
                  ):
+        self.all_images = all_images
+        self.current_images = current_images
         self.product_addictive_params = product_addictive_params
         self.article = article
         self.category= category
@@ -50,7 +70,6 @@ class PoizonProduct(JsonSerializable):
         self.sku_ids = sku_ids  # уникальный
         self.spu_id = spu_id  # общий
         self.floor_price = floor_price
-        self.current_images = current_images
         self.brand = brand
         self.brand_logo = brand_logo
         self.brand_id = brand_id
@@ -83,7 +102,6 @@ class PoizonProduct(JsonSerializable):
         category_id = product_properties.category_id
         title = product_properties.title
         desc = product_properties.desc
-
         #brand info
         brand_info = ParseBrandInfo.from_json(raw_data=raw_data)
         brand = brand_info.brand
@@ -93,16 +111,10 @@ class PoizonProduct(JsonSerializable):
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
         floor_price = price_info.floor_price
         prices = price_info.prices
-        if not product_addictive_params: product_addictive_params = NON_STATED
-        if not current_sizes: current_sizes = NON_STATED
-        if not current_colors: current_colors = NON_STATED
-        if not size_ids: size_ids = NON_STATED
-        if not color_ids: color_ids = NON_STATED
-        if not prices: prices = NON_STATED
-        if not sku_ids: sku_ids = NON_STATED
-        if not size_table: size_table = NON_STATED
 
         return cls(
+            all_images=[],
+            current_images=[],
             product_addictive_params=product_addictive_params,
             article=article,
             category=category,
@@ -115,7 +127,6 @@ class PoizonProduct(JsonSerializable):
             sku_ids=sku_ids,
             spu_id=spu_id,
             floor_price=floor_price,
-            current_images=[],
             brand=brand,
             brand_logo=brand_logo,
             brand_id=brand_id,
@@ -124,23 +135,10 @@ class PoizonProduct(JsonSerializable):
             desc=desc
         )
 
-class PoizonCategoryParser(JsonSerializable):
-    """
-    class for getting/updating categories list api: GET /getCategories
-    """
-    def __init__(self, categories: Dict[str, str]):
-        self.categories = categories
-
-    @classmethod
-    def from_json(cls, json_data):
-        categories = {}
-        for i in json_data:
-            categories[i["id"]] = i["name"]
-        return cls(categories = categories)
 
 
 if (__name__ == "__main__"):
-    with open('../jacket.json', 'r') as f:
+    with open('../controlles_all.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
