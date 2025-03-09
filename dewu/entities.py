@@ -11,6 +11,8 @@ from base import NON_STATED
 #     images: list
 #     category: str
 
+
+
 class PoizonCategoryParser(JsonSerializable):
     """
     class for getting/updating categories list api: GET /getCategories
@@ -34,7 +36,7 @@ class PoizonProduct(JsonSerializable):
     """
 
     def __init__(self,
-                 all_images: List[str],
+                 general_logo_image: str,
                  current_images: List[str],
                  images_ids: List[str],
                  product_addictive_params: Dict[str, str] | NON_STATED,
@@ -56,7 +58,7 @@ class PoizonProduct(JsonSerializable):
                  title: str,
                  desc: str | NON_STATED
                  ):
-        self.all_images = all_images
+        self.general_logo_image = general_logo_image
         self.current_images = current_images
         self.images_ids = images_ids
         self.product_addictive_params = product_addictive_params
@@ -82,7 +84,6 @@ class PoizonProduct(JsonSerializable):
     @classmethod
     def from_json(cls, json_data):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
-        # TODO товары с доставкой через европу убрать из списка, картинки
         #sizes
         size_info = ParseSizes.from_json(raw_data=raw_data)
         current_sizes = size_info.current_sizes
@@ -117,8 +118,9 @@ class PoizonProduct(JsonSerializable):
         images_info = ParseImages.from_json(raw_data=raw_data)
         images_ids = images_info.images_ids
         current_images = images_info.current_images
+        general_logo_image = images_info.general_logo_image
         return cls(
-            all_images=[],
+            general_logo_image=general_logo_image,
             current_images=current_images,
             images_ids=images_ids,
             product_addictive_params=product_addictive_params,
@@ -144,7 +146,7 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../controlles_all.json', 'r') as f:
+    with open('../double_trans_shoes.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
