@@ -1,5 +1,5 @@
 import json
-from typing import Optional, List, Dict
+from typing import List, Dict
 from base import JsonSerializable
 from poizon_parse_helpers import ParseSizes, ParseColors, ParseProductIds, ParseProductProperties, ParseBrandInfo, ParsePriceInfo, ParseImages
 from raw_data_handlers import PoizonProductRaw
@@ -146,7 +146,7 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../double_trans_shoes.json', 'r') as f:
+    with open('../controlles_all.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
@@ -165,7 +165,6 @@ if (__name__ == "__main__"):
     print(f"floor_price = {a.floor_price}")
     print(f"title = {a.title}")
     print(f"desc = {a.desc}")
-    print(f"current_images = {a.current_images}")
     print(f"category = {a.category}")
     print(f"category_id = {a.category_id}")
     print(f"size_table = {a.size_table}")

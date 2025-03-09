@@ -1,6 +1,16 @@
+from turtledemo.forest import doit1
 from typing import List, Dict
 from base import JsonSerializable, NON_STATED
 from raw_data_handlers import PoizonProductRaw
+import json
+
+def any_in_stock(raw_data: PoizonProductRaw) -> bool:
+    for sku in raw_data.skus:
+        if 'price' in sku:
+            if sku['price']['quantity'] != '0':
+                return True
+        else: return False
+    return False
 
 def is_in_stock(sku: Dict) -> bool:
     if 'price' in sku:
@@ -22,6 +32,9 @@ class ParseSizes(JsonSerializable):
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
+        if not any_in_stock(raw_data):
+            return cls(current_sizes=NON_STATED, size_ids=NON_STATED, size_table=NON_STATED)
+
         current_sizes = []
         size_ids = []
         size_table = {}
@@ -51,6 +64,9 @@ class ParseColors(JsonSerializable):
         self.color_ids = color_ids
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
+        if not any_in_stock(raw_data):
+            return cls(color_ids=NON_STATED, current_colors=NON_STATED)
+
         current_colors = []
         color_ids = []
         for i in raw_data.skus:
@@ -79,7 +95,8 @@ class ParseProductIds(JsonSerializable):
     def from_json(cls, raw_data: PoizonProductRaw):
         sku_ids = []
         for i in raw_data.skus:
-            sku_ids.append(i['skuId'])
+            if is_in_stock(i):
+                sku_ids.append(i['skuId'])
 
         if not sku_ids: sku_ids = NON_STATED
 
@@ -130,7 +147,7 @@ class ParseBrandInfo(JsonSerializable):
 
 class ParsePriceInfo(JsonSerializable):
     def __init__(self,
-                 floor_price: int | NON_STATED,
+                 floor_price: int | NON_STATED, #TODO не очень вариант тк флор прайс иногда бывает на евро доставку
                  prices: List[int] | NON_STATED):
         self.floor_price = floor_price
         self.prices = prices
@@ -138,6 +155,9 @@ class ParsePriceInfo(JsonSerializable):
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         prices = []
+        if not any_in_stock(raw_data):
+            return cls(floor_price=NON_STATED, prices=NON_STATED)
+
         for i in raw_data.skus:
             if is_in_stock(i):
                 prices.append(i["price"]["prices"][0]["price"] if i["price"]["prices"] else NON_STATED)
@@ -162,8 +182,12 @@ class ParseImages(JsonSerializable):
     def from_json(cls, raw_data: PoizonProductRaw):
         current_images = {}
         images_ids = []
+        if not any_in_stock(raw_data):
+            return cls(current_images=NON_STATED, images_ids=NON_STATED, general_logo_image=raw_data.detail['logoUrl'])
+
         for i in raw_data.image['spuImage']['arSkuIdRelation']:
-            images_ids.append(i['propertyValueId'])
+            if is_in_stock(i):
+                images_ids.append(i['propertyValueId'])
 
         for id in images_ids:
             tmp_imgs = []
@@ -172,8 +196,12 @@ class ParseImages(JsonSerializable):
                     tmp_imgs.append(img['url'])
             current_images[id] = tmp_imgs
 
+        if not current_images: current_images = NON_STATED
+        if not images_ids: images_ids = NON_STATED
+
         return cls(current_images=current_images,
                    images_ids=images_ids,
                    general_logo_image=raw_data.detail['logoUrl'])
+
 
 
