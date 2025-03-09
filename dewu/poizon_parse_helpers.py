@@ -156,10 +156,13 @@ class ParseImages(JsonSerializable):
         images_ids = []
         for i in raw_data.image['spuImage']['arSkuIdRelation']:
             images_ids.append(i['propertyValueId'])
-        for i in raw_data.image['spuImage']['images']:
-            for j in images_ids:
-                if i['propertyValueId'] == j:
-                    current_images[j] = i['url']
+        for id in images_ids:
+            tmp_imgs = []
+            for img in raw_data.image['spuImage']['images']:
+                if id == img['propertyValueId']:
+                    tmp_imgs.append(img['url'])
+            current_images[id] = tmp_imgs
+
 
         return cls(all_images=[],current_images=current_images,images_ids=images_ids)
 
