@@ -1,7 +1,7 @@
 import json
 from typing import Optional, List, Dict
 from base import JsonSerializable
-from poizon_parse_helpers import ParseSizes, ParseColors, ParseProductIds, ParseProductProperties, ParseBrandInfo, ParsePriceInfo
+from poizon_parse_helpers import ParseSizes, ParseColors, ParseProductIds, ParseProductProperties, ParseBrandInfo, ParsePriceInfo, ParseImages
 from raw_data_handlers import PoizonProductRaw
 from base import NON_STATED
 # class Product:
@@ -36,6 +36,7 @@ class PoizonProduct(JsonSerializable):
     def __init__(self,
                  all_images: List[str],
                  current_images: List[str],
+                 images_ids: List[str],
                  product_addictive_params: Dict[str, str] | NON_STATED,
                  article: str,
                  category: str | NON_STATED,
@@ -57,6 +58,7 @@ class PoizonProduct(JsonSerializable):
                  ):
         self.all_images = all_images
         self.current_images = current_images
+        self.images_ids = images_ids
         self.product_addictive_params = product_addictive_params
         self.article = article
         self.category= category
@@ -111,10 +113,14 @@ class PoizonProduct(JsonSerializable):
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
         floor_price = price_info.floor_price
         prices = price_info.prices
-
+        #imgs 3 positions
+        images_info = ParseImages.from_json(raw_data=raw_data)
+        images_ids = images_info.images_ids
+        current_images = images_info.current_images
         return cls(
             all_images=[],
-            current_images=[],
+            current_images=current_images,
+            images_ids=images_ids,
             product_addictive_params=product_addictive_params,
             article=article,
             category=category,
@@ -138,13 +144,14 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../controlles_all.json', 'r') as f:
+    with open('../data.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
     print(f"sizeIDs = {a.size_ids}")
     print(f"colorIds = {a.color_ids}")
     print(f"skuIds = {a.sku_ids}")
+    print(f'images_ids = {a.images_ids}')
     print(f"current_sizes = {a.current_sizes}")
     print(f"current_colors = {a.current_colors}")
     print(f"prices = {a.prices}\n")
@@ -162,3 +169,4 @@ if (__name__ == "__main__"):
     print(f"size_table = {a.size_table}")
     print(f"product_addictive_params = {a.product_addictive_params}")
     print(f"article = {a.article}")
+    print(f'current_images = {a.current_images}')

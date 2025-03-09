@@ -142,14 +142,25 @@ class ParsePriceInfo(JsonSerializable):
         )
 
 class ParseImages(JsonSerializable):
-    def __init__(self, all_images, current_images):
+    def __init__(self,
+                 all_images: List[str],
+                 current_images: Dict[int, List[str]],
+                 images_ids: List[str]):
         self.all_images = all_images
-        self.current_images: Dict[int, List[str]] = current_images
-#TODO сделать словарь ску айди - список картинок
+        self.current_images = current_images
+        self.images_ids = images_ids
+#TODO сделать словарь ску айди - список картинок, общее лого урл сделать
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         current_images = {}
+        images_ids = []
+        for i in raw_data.image['spuImage']['arSkuIdRelation']:
+            images_ids.append(i['propertyValueId'])
         for i in raw_data.image['spuImage']['images']:
-            current_images[i['propertyValueId']] = i['url']
+            for j in images_ids:
+                if i['propertyValueId'] == j:
+                    current_images[j] = i['url']
+
+        return cls(all_images=[],current_images=current_images,images_ids=images_ids)
 
 
