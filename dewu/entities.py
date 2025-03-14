@@ -36,27 +36,33 @@ class PoizonProduct(JsonSerializable):
     """
 
     def __init__(self,
-                 general_logo_image: str,
-                 current_images: List[str],
-                 images_ids: List[str],
-                 product_addictive_params: Dict[str, str] | NON_STATED,
-                 article: str,
-                 category: str | NON_STATED,
-                 category_id: int,
-                 current_colors: List[str] | NON_STATED,
                  current_sizes: List[int] | NON_STATED,
                  size_ids: List[int] | NON_STATED,
                  size_table: Dict[str, str] | NON_STATED,
+
+                 current_colors: List[str] | NON_STATED,
                  color_ids: List[int] | NON_STATED,
-                 prices: List[int] | NON_STATED,
+
                  sku_ids: List[int] | NON_STATED,
                  spu_id: int,
-                 floor_price: int | NON_STATED,
-                 brand: str,
-                 brand_logo: str,
-                 brand_id: str,
+                 article: str,
+
+                 product_addictive_params: Dict[str, str] | NON_STATED,
+                 category: str | NON_STATED,
+                 category_id: int,
                  title: str,
-                 desc: str | NON_STATED
+                 desc: str | NON_STATED,
+
+                 brand: str,
+                 brand_id: str,
+                 brand_logo: str,
+
+                 floor_price: int | NON_STATED,
+                 prices: List[int] | NON_STATED,
+
+                 images_ids: List[str],
+                 current_images: List[str],
+                 general_logo_image: str,
                  ):
         self.general_logo_image = general_logo_image
         self.current_images = current_images
@@ -120,27 +126,27 @@ class PoizonProduct(JsonSerializable):
         current_images = images_info.current_images
         general_logo_image = images_info.general_logo_image
         return cls(
-            general_logo_image=general_logo_image,
-            current_images=current_images,
-            images_ids=images_ids,
-            product_addictive_params=product_addictive_params,
-            article=article,
-            category=category,
-            category_id=category_id,
             current_sizes=current_sizes,
-            current_colors=current_colors,
             size_ids=size_ids,
+            size_table=size_table,
+            current_colors=current_colors,
             color_ids=color_ids,
-            prices=prices,
             sku_ids=sku_ids,
             spu_id=spu_id,
-            floor_price=floor_price,
-            brand=brand,
-            brand_logo=brand_logo,
-            brand_id=brand_id,
+            article=article,
+            product_addictive_params=product_addictive_params,
+            category=category,
+            category_id=category_id,
             title=title,
-            size_table=size_table,
-            desc=desc
+            desc=desc,
+            brand=brand,
+            brand_id=brand_id,
+            brand_logo=brand_logo,
+            floor_price=floor_price,
+            prices=prices,
+            images_ids=images_ids,
+            current_images=current_images,
+            general_logo_image=general_logo_image
         )
 
 
@@ -171,3 +177,4 @@ if (__name__ == "__main__"):
     print(f"product_addictive_params = {a.product_addictive_params}")
     print(f"article = {a.article}")
     print(f'current_images = {a.current_images}')
+    print(f"general_logo_image = {a.general_logo_image}")
