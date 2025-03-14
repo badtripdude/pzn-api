@@ -11,7 +11,7 @@ from base import NON_STATED
 #     images: list
 #     category: str
 
-class PoizonPrice: #todo есть еще описание каждого вида цены но хз надо ли
+class PoizonProductPrice: #todo есть еще описание каждого вида цены но хз надо ли
     def __init__(self, recommended_prices, types_of_prices, floor_price, max_price):
         self.recommended_prices = recommended_prices
         self.types_of_prices = types_of_prices
@@ -81,7 +81,7 @@ class PoizonProduct(JsonSerializable):
                  brand_id: str,
                  brand_logo: str,
 
-                 prices,
+                 prices: PoizonProductPrice | NON_STATED,
 
                  images_ids: List[str],
                  current_images: List[str],
@@ -163,7 +163,7 @@ class PoizonProduct(JsonSerializable):
             brand=brand,
             brand_id=brand_id,
             brand_logo=brand_logo,
-            prices=PoizonPrice(recommended_prices=price_info.recommended_prices, types_of_prices=price_info.types_of_prices, floor_price=price_info.floor_price, max_price=price_info.max_price),
+            prices=PoizonProductPrice(recommended_prices=price_info.recommended_prices, types_of_prices=price_info.types_of_prices, floor_price=price_info.floor_price, max_price=price_info.max_price),
             images_ids=images_ids,
             current_images=current_images,
             general_logo_image=general_logo_image
@@ -182,7 +182,6 @@ if (__name__ == "__main__"):
     print(f'images_ids = {a.images_ids}')
     print(f"current_sizes = {a.current_sizes}")
     print(f"current_colors = {a.current_colors}")
-    print(f"prices = {a.prices}\n")
     print(f"brand = {a.brand}")
     print(f"brand_logo = {a.brand_logo}")
 

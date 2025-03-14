@@ -162,15 +162,8 @@ class ParsePriceInfo(JsonSerializable):
         self.max_price = max_price
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
-        # prices = []
-        # if not any_in_stock(raw_data):
-        #     return cls(floor_price=NON_STATED, prices=NON_STATED)
-        #
-        # for i in raw_data.skus:
-        #     if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-        #         prices.append(i["price"]["prices"][0]["price"] if i["price"]["prices"] else NON_STATED)
-        #
-        # if not prices: prices = NON_STATED
+        if not any_in_stock(raw_data): # проверка есть ли хоть один товар в продаже, если нет - возвращаем NON_STATED
+            return cls(recommended_prices=NON_STATED, types_of_prices=NON_STATED, floor_price=NON_STATED, max_price=NON_STATED)
         recommended_prices = []
         for item in raw_data.skus:
             recommended_prices.append(item['authPrice'])
@@ -198,8 +191,8 @@ class ParseImages(JsonSerializable):
                  current_images: Dict[int, List[str]],
                  images_ids: List[str], #TODO сделать дикт skuId: ValueId
                  general_logo_image: str):
-        self.current_images = current_images
-        self.images_ids = images_ids
+        self.current_images = current_images # colorId:img_url
+        self.images_ids = images_ids #imgIds
         self.general_logo_image = general_logo_image
 
     @classmethod
