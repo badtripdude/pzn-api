@@ -11,6 +11,30 @@ from base import NON_STATED
 #     images: list
 #     category: str
 
+class PoizonPrice: #todo есть еще описание каждого вида цены но хз надо ли
+    def __init__(self, recommended_prices, types_of_prices, floor_price, max_price):
+        self.recommended_prices = recommended_prices
+        self.types_of_prices = types_of_prices
+        self.floor_price = floor_price
+        self.max_price = max_price
+
+    def get_recommended_prices(self):
+        return self.recommended_prices
+
+    def get_types_of_prices(self):
+        return self.types_of_prices
+
+    def get_floor_price(self):
+        return self.floor_price
+
+    def get_max_price(self):
+        return self.max_price
+
+
+
+
+
+
 
 
 class PoizonCategoryParser(JsonSerializable):
@@ -57,8 +81,7 @@ class PoizonProduct(JsonSerializable):
                  brand_id: str,
                  brand_logo: str,
 
-                 floor_price: int | NON_STATED,
-                 prices: List[int] | NON_STATED,
+                 prices,
 
                  images_ids: List[str],
                  current_images: List[str],
@@ -76,12 +99,11 @@ class PoizonProduct(JsonSerializable):
         self.size_ids = size_ids
         self.size_table = size_table
         self.color_ids = color_ids
-        self.prices = prices
         self.sku_ids = sku_ids  # уникальный
         self.spu_id = spu_id  # общий
-        self.floor_price = floor_price
         self.brand = brand
         self.brand_logo = brand_logo
+        self.prices = prices
         self.brand_id = brand_id
         self.title = title
         self.desc = desc
@@ -118,8 +140,7 @@ class PoizonProduct(JsonSerializable):
         brand_logo = brand_info.brand_logo
         #price info
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
-        floor_price = price_info.floor_price
-        prices = price_info.prices
+
         #imgs 3 positions
         images_info = ParseImages.from_json(raw_data=raw_data)
         images_ids = images_info.images_ids
@@ -142,8 +163,7 @@ class PoizonProduct(JsonSerializable):
             brand=brand,
             brand_id=brand_id,
             brand_logo=brand_logo,
-            floor_price=floor_price,
-            prices=prices,
+            prices=PoizonPrice(recommended_prices=price_info.recommended_prices, types_of_prices=price_info.types_of_prices, floor_price=price_info.floor_price, max_price=price_info.max_price),
             images_ids=images_ids,
             current_images=current_images,
             general_logo_image=general_logo_image
@@ -168,7 +188,6 @@ if (__name__ == "__main__"):
 
     print(f"brand_id = {a.brand_id}")
     print(f"spu_id = {a.spu_id}")
-    print(f"floor_price = {a.floor_price}")
     print(f"title = {a.title}")
     print(f"desc = {a.desc}")
     print(f"category = {a.category}")
@@ -178,3 +197,9 @@ if (__name__ == "__main__"):
     print(f"article = {a.article}")
     print(f'current_images = {a.current_images}')
     print(f"general_logo_image = {a.general_logo_image}")
+
+    print("\n### PRICES ###")
+    print(f"types_of_prices = {a.prices.types_of_prices}")
+    print(f'recommended_prices = {a.prices.recommended_prices}')
+    print(f'floor_price = {a.prices.floor_price}')
+    print(f'max_price = {a.prices.max_price}')

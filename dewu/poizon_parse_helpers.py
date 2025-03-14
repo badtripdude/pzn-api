@@ -1,8 +1,12 @@
+import json
 from typing import List, Dict
 from base import JsonSerializable, NON_STATED
 from raw_data_handlers import PoizonProductRaw
 
+#todo не уверен в верности проверки
 def any_in_stock(raw_data: PoizonProductRaw) -> bool:
+    if 'price' not in raw_data.skus[0]:
+        return False
     for sku in raw_data.skus:
         if 'price' in sku:
             if sku['price']['quantity'] != '0':
@@ -11,9 +15,12 @@ def any_in_stock(raw_data: PoizonProductRaw) -> bool:
     return False
 
 def is_in_stock(sku_id: int, raw_data: PoizonProductRaw) -> bool:
+    if 'price' not in raw_data.skus[0]:
+        return False
+
     for sku in raw_data.skus:
-        if sku['skuId'] == sku_id and sku['price']['quantity'] != 0:
-            return True
+            if sku['skuId'] == sku_id and sku['price']['quantity'] != 0:
+                return True
     return False
 
 class ParseSizes(JsonSerializable):
@@ -145,27 +152,46 @@ class ParseBrandInfo(JsonSerializable):
 
 class ParsePriceInfo(JsonSerializable):
     def __init__(self,
-                 floor_price: int | NON_STATED, #TODO не очень вариант тк флор прайс иногда бывает на евро доставку
-                 prices: List[int] | NON_STATED):
+                 recommended_prices: List[int] | NON_STATED, #TODO не очень вариант тк флор прайс иногда бывает на евро доставку
+                 types_of_prices: Dict[int, Dict[int, int]] | NON_STATED,
+                 floor_price: int | NON_STATED,
+                 max_price: int | NON_STATED,):
+        self.recommended_prices = recommended_prices
+        self.types_of_prices = types_of_prices
         self.floor_price = floor_price
-        self.prices = prices
-
+        self.max_price = max_price
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
-        prices = []
-        if not any_in_stock(raw_data):
-            return cls(floor_price=NON_STATED, prices=NON_STATED)
+        # prices = []
+        # if not any_in_stock(raw_data):
+        #     return cls(floor_price=NON_STATED, prices=NON_STATED)
+        #
+        # for i in raw_data.skus:
+        #     if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
+        #         prices.append(i["price"]["prices"][0]["price"] if i["price"]["prices"] else NON_STATED)
+        #
+        # if not prices: prices = NON_STATED
+        recommended_prices = []
+        for item in raw_data.skus:
+            recommended_prices.append(item['authPrice'])
 
-        for i in raw_data.skus:
-            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-                prices.append(i["price"]["prices"][0]["price"] if i["price"]["prices"] else NON_STATED)
+        types_of_prices = {}
+        for item in raw_data.skus:
+            sku_id = item['skuId']
+            prices = {}
+            if is_in_stock(sku_id=sku_id, raw_data=raw_data):
+                for price in item['price']['prices']:
+                    prices[price['tradeType']] = price['price']
+                types_of_prices[sku_id] = prices
+        floor_price = raw_data.price['item']['floorPrice']
+        max_price = raw_data.price['item']['maxPrice']
 
-        if not prices: prices = NON_STATED
+        return cls(recommended_prices=recommended_prices,
+                   types_of_prices=types_of_prices,
+                   floor_price=floor_price,
+                   max_price=max_price)
 
-        return cls(
-            floor_price=raw_data.price["item"]["floorPrice"] if raw_data.price else NON_STATED,
-            prices=prices
-        )
+
 
 class ParseImages(JsonSerializable):
     def __init__(self,
@@ -207,3 +233,14 @@ class ParseImages(JsonSerializable):
 
 
 
+# with open('../cologne.json', 'r') as f:
+#     dictData = json.load(f)
+#
+# raw_data = PoizonProductRaw.from_json(json_data=dictData)
+#
+# priceInfo = ParsePriceInfo.from_json(raw_data=raw_data)
+#
+# print(f'types_of_prices = {priceInfo.types_of_prices}')
+# print(f'floor_price = {priceInfo.floor_price}')
+# print(f'max_price = {priceInfo.max_price}')
+# print(f'recommended_prices = {priceInfo.recommended_prices}')
