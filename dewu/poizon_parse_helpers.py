@@ -5,13 +5,14 @@ from raw_data_handlers import PoizonProductRaw
 
 #todo не уверен в верности проверки
 def any_in_stock(raw_data: PoizonProductRaw) -> bool:
-    if 'price' not in raw_data.skus[0]:
-        return False
-    for sku in raw_data.skus:
-        if 'price' in sku:
-            if sku['price']['quantity'] != '0':
-                return True
-        else: return False
+    if raw_data.price:
+        if 'price' not in raw_data.skus[0]:
+            return False
+        for sku in raw_data.skus:
+            if 'price' in sku:
+                if sku['price']['quantity'] != '0':
+                    return True
+            else: return False
     return False
 
 def is_in_stock(sku_id: int, raw_data: PoizonProductRaw) -> bool:
@@ -202,12 +203,8 @@ class ParseImages(JsonSerializable):
         if not any_in_stock(raw_data):
             return cls(current_images=NON_STATED, images_ids=NON_STATED, general_logo_image=raw_data.detail['logoUrl'])
 
-        # sku_to_color_id = {}
-        # for i in raw_data.image['spuImage']['arSkuIdRelation']:
-        #     sku_to_color_id[i['propertyValueId']] = i['skuId']
-
         for i in raw_data.image['spuImage']['arSkuIdRelation']:
-            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data): # TODO переделать логику чтобы искала по ску айди
+            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
                 images_ids.append(i['propertyValueId'])
 
         for id in images_ids:

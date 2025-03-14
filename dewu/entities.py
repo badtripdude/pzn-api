@@ -30,9 +30,20 @@ class PoizonProductPrice: #todo есть еще описание каждого 
     def get_max_price(self):
         return self.max_price
 
+class PoizonProductSize:
+    def __init__(self, current_sizes, size_ids, size_table):
+        self.current_sizes = current_sizes
+        self.size_ids = size_ids
+        self.size_table = size_table
 
+    def get_current_sizes(self):
+        return self.current_sizes
 
+    def get_size_ids(self):
+        return self.size_ids
 
+    def get_size_table(self):
+        return self.size_table
 
 
 
@@ -60,9 +71,7 @@ class PoizonProduct(JsonSerializable):
     """
 
     def __init__(self,
-                 current_sizes: List[int] | NON_STATED,
-                 size_ids: List[int] | NON_STATED,
-                 size_table: Dict[str, str] | NON_STATED,
+                 sizes: PoizonProductSize,
 
                  current_colors: List[str] | NON_STATED,
                  color_ids: List[int] | NON_STATED,
@@ -95,9 +104,10 @@ class PoizonProduct(JsonSerializable):
         self.category= category
         self.category_id = category_id
         self.current_colors = current_colors
-        self.current_sizes = current_sizes
-        self.size_ids = size_ids
-        self.size_table = size_table
+        # self.current_sizes = current_sizes
+        # self.size_ids = size_ids
+        # self.size_table = size_table
+        self.sizes = sizes
         self.color_ids = color_ids
         self.sku_ids = sku_ids  # уникальный
         self.spu_id = spu_id  # общий
@@ -114,9 +124,9 @@ class PoizonProduct(JsonSerializable):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         #sizes
         size_info = ParseSizes.from_json(raw_data=raw_data)
-        current_sizes = size_info.current_sizes
-        size_ids = size_info.size_ids
-        size_table = size_info.size_table
+        sizes = PoizonProductSize(current_sizes=size_info.current_sizes,
+                                  size_ids=size_info.size_ids,
+                                  size_table=size_info.size_table)
         #colors
         color_info = ParseColors.from_json(raw_data=raw_data)
         current_colors = color_info.current_colors
@@ -140,16 +150,16 @@ class PoizonProduct(JsonSerializable):
         brand_logo = brand_info.brand_logo
         #price info
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
-
+        prices = PoizonProductPrice(recommended_prices=price_info.recommended_prices,
+                           types_of_prices=price_info.types_of_prices,
+                           floor_price=price_info.floor_price, max_price=price_info.max_price)
         #imgs 3 positions
         images_info = ParseImages.from_json(raw_data=raw_data)
         images_ids = images_info.images_ids
         current_images = images_info.current_images
         general_logo_image = images_info.general_logo_image
         return cls(
-            current_sizes=current_sizes,
-            size_ids=size_ids,
-            size_table=size_table,
+            sizes=sizes,
             current_colors=current_colors,
             color_ids=color_ids,
             sku_ids=sku_ids,
@@ -163,7 +173,7 @@ class PoizonProduct(JsonSerializable):
             brand=brand,
             brand_id=brand_id,
             brand_logo=brand_logo,
-            prices=PoizonProductPrice(recommended_prices=price_info.recommended_prices, types_of_prices=price_info.types_of_prices, floor_price=price_info.floor_price, max_price=price_info.max_price),
+            prices=prices,
             images_ids=images_ids,
             current_images=current_images,
             general_logo_image=general_logo_image
@@ -172,15 +182,13 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../controlles_all.json', 'r') as f:
+    with open('../jacket.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
-    print(f"sizeIDs = {a.size_ids}")
     print(f"colorIds = {a.color_ids}")
     print(f"skuIds = {a.sku_ids}")
     print(f'images_ids = {a.images_ids}')
-    print(f"current_sizes = {a.current_sizes}")
     print(f"current_colors = {a.current_colors}")
     print(f"brand = {a.brand}")
     print(f"brand_logo = {a.brand_logo}")
@@ -191,7 +199,6 @@ if (__name__ == "__main__"):
     print(f"desc = {a.desc}")
     print(f"category = {a.category}")
     print(f"category_id = {a.category_id}")
-    print(f"size_table = {a.size_table}")
     print(f"product_addictive_params = {a.product_addictive_params}")
     print(f"article = {a.article}")
     print(f'current_images = {a.current_images}')
@@ -202,3 +209,7 @@ if (__name__ == "__main__"):
     print(f'recommended_prices = {a.prices.recommended_prices}')
     print(f'floor_price = {a.prices.floor_price}')
     print(f'max_price = {a.prices.max_price}')
+
+    print(f'current_sizes = {a.sizes.current_sizes}')
+    print(f'size_ids = {a.sizes.size_ids}')
+    print(f'size_table = {a.sizes.size_table}')
