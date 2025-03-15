@@ -11,40 +11,6 @@ from base import NON_STATED
 #     images: list
 #     category: str
 
-class PoizonProductPrice: #todo есть еще описание каждого вида цены но хз надо ли
-    def __init__(self, recommended_prices, types_of_prices, floor_price, max_price):
-        self.recommended_prices = recommended_prices
-        self.types_of_prices = types_of_prices
-        self.floor_price = floor_price
-        self.max_price = max_price
-
-    def get_recommended_prices(self):
-        return self.recommended_prices
-
-    def get_types_of_prices(self):
-        return self.types_of_prices
-
-    def get_floor_price(self):
-        return self.floor_price
-
-    def get_max_price(self):
-        return self.max_price
-
-class PoizonProductSize:
-    def __init__(self, current_sizes, size_ids, size_table):
-        self.current_sizes = current_sizes
-        self.size_ids = size_ids
-        self.size_table = size_table
-
-    def get_current_sizes(self):
-        return self.current_sizes
-
-    def get_size_ids(self):
-        return self.size_ids
-
-    def get_size_table(self):
-        return self.size_table
-
 
 
 
@@ -67,8 +33,29 @@ class PoizonCategoryParser(JsonSerializable):
 
 class PoizonProduct(JsonSerializable):
     """
-        class for parsing and keeping data from PoizonProductRaw
+            class for parsing and keeping data from PoizonProductRaw
     """
+
+    class PoizonProductPrice:  # todo есть еще описание каждого вида цены но хз надо ли
+        def __init__(self, recommended_prices, types_of_prices, floor_price, max_price):
+            self.recommended_prices = recommended_prices
+            self.types_of_prices = types_of_prices
+            self.floor_price = floor_price
+            self.max_price = max_price
+
+    class PoizonProductSize:
+        def __init__(self, current_sizes, size_ids, size_table):
+            self.current_sizes = current_sizes
+            self.size_ids = size_ids
+            self.size_table = size_table
+
+    class PoizonProductImages:
+        def __init__(self, general_logo_image, current_images):
+            self.general_logo_image = general_logo_image
+            self.current_images = current_images
+
+
+
 
     def __init__(self,
                  sizes: PoizonProductSize,
@@ -92,21 +79,14 @@ class PoizonProduct(JsonSerializable):
 
                  prices: PoizonProductPrice | NON_STATED,
 
-                 images_ids: List[str],
-                 current_images: List[str],
-                 general_logo_image: str,
+                 images: PoizonProductImages | NON_STATED
                  ):
-        self.general_logo_image = general_logo_image
-        self.current_images = current_images
-        self.images_ids = images_ids
+        self.images = images
         self.product_addictive_params = product_addictive_params
         self.article = article
         self.category= category
         self.category_id = category_id
         self.current_colors = current_colors
-        # self.current_sizes = current_sizes
-        # self.size_ids = size_ids
-        # self.size_table = size_table
         self.sizes = sizes
         self.color_ids = color_ids
         self.sku_ids = sku_ids  # уникальный
@@ -124,7 +104,7 @@ class PoizonProduct(JsonSerializable):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         #sizes
         size_info = ParseSizes.from_json(raw_data=raw_data)
-        sizes = PoizonProductSize(current_sizes=size_info.current_sizes,
+        sizes = PoizonProduct.PoizonProductSize(current_sizes=size_info.current_sizes,
                                   size_ids=size_info.size_ids,
                                   size_table=size_info.size_table)
         #colors
@@ -150,14 +130,13 @@ class PoizonProduct(JsonSerializable):
         brand_logo = brand_info.brand_logo
         #price info
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
-        prices = PoizonProductPrice(recommended_prices=price_info.recommended_prices,
+        prices = PoizonProduct.PoizonProductPrice(recommended_prices=price_info.recommended_prices,
                            types_of_prices=price_info.types_of_prices,
                            floor_price=price_info.floor_price, max_price=price_info.max_price)
         #imgs 3 positions
         images_info = ParseImages.from_json(raw_data=raw_data)
-        images_ids = images_info.images_ids
-        current_images = images_info.current_images
-        general_logo_image = images_info.general_logo_image
+        images = PoizonProduct.PoizonProductImages(general_logo_image=images_info.general_logo_image,
+                                     current_images=images_info.current_images)
         return cls(
             sizes=sizes,
             current_colors=current_colors,
@@ -174,9 +153,7 @@ class PoizonProduct(JsonSerializable):
             brand_id=brand_id,
             brand_logo=brand_logo,
             prices=prices,
-            images_ids=images_ids,
-            current_images=current_images,
-            general_logo_image=general_logo_image
+            images=images
         )
 
 
@@ -188,7 +165,6 @@ if (__name__ == "__main__"):
     a = PoizonProduct.from_json(json_data=dictData)
     print(f"colorIds = {a.color_ids}")
     print(f"skuIds = {a.sku_ids}")
-    print(f'images_ids = {a.images_ids}')
     print(f"current_colors = {a.current_colors}")
     print(f"brand = {a.brand}")
     print(f"brand_logo = {a.brand_logo}")
@@ -201,8 +177,6 @@ if (__name__ == "__main__"):
     print(f"category_id = {a.category_id}")
     print(f"product_addictive_params = {a.product_addictive_params}")
     print(f"article = {a.article}")
-    print(f'current_images = {a.current_images}')
-    print(f"general_logo_image = {a.general_logo_image}")
 
     print("\n### PRICES ###")
     print(f"types_of_prices = {a.prices.types_of_prices}")
@@ -213,3 +187,6 @@ if (__name__ == "__main__"):
     print(f'current_sizes = {a.sizes.current_sizes}')
     print(f'size_ids = {a.sizes.size_ids}')
     print(f'size_table = {a.sizes.size_table}')
+
+    print(f'current_images = {a.images.current_images}')
+    print(f'general_logo_image = {a.images.general_logo_image}')

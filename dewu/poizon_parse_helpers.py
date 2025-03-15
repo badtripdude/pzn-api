@@ -167,7 +167,8 @@ class ParsePriceInfo(JsonSerializable):
             return cls(recommended_prices=NON_STATED, types_of_prices=NON_STATED, floor_price=NON_STATED, max_price=NON_STATED)
         recommended_prices = []
         for item in raw_data.skus:
-            recommended_prices.append(item['authPrice'])
+            if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                recommended_prices.append(item['authPrice'])
 
         types_of_prices = {}
         for item in raw_data.skus:
@@ -185,52 +186,87 @@ class ParsePriceInfo(JsonSerializable):
                    floor_price=floor_price,
                    max_price=max_price)
 
+# class ParseImages(JsonSerializable):
+#     def __init__(self,
+#                  current_images: Dict[int, List[str]],
+#                  images_ids: List[str], #TODO сделать дикт skuId: ValueId
+#                  general_logo_image: str):
+#         self.current_images = current_images # colorId:img_url
+#         self.images_ids = images_ids #imgIds
+#         self.general_logo_image = general_logo_image
+#
+#     @classmethod
+#     def from_json(cls, raw_data: PoizonProductRaw):
+#         current_images = {}
+#         images_ids = []
+#         if not any_in_stock(raw_data):
+#             return cls(current_images=NON_STATED, images_ids=NON_STATED, general_logo_image=raw_data.detail['logoUrl'])
+#
+#         for i in raw_data.image['spuImage']['arSkuIdRelation']:
+#             if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
+#                 images_ids.append(i['propertyValueId'])
+#
+#         for id in images_ids:
+#             tmp_imgs = []
+#             for img in raw_data.image['spuImage']['images']:
+#                 if id == img['propertyValueId']:
+#                     tmp_imgs.append(img['url'])
+#             current_images[id] = tmp_imgs
+#
+#         if not current_images: current_images = NON_STATED
+#         if not images_ids: images_ids = NON_STATED
+#
+#         return cls(current_images=current_images,
+#                    images_ids=images_ids,
+#                    general_logo_image=raw_data.detail['logoUrl'])
+
+
+
 
 
 class ParseImages(JsonSerializable):
-    def __init__(self,
-                 current_images: Dict[int, List[str]],
-                 images_ids: List[str], #TODO сделать дикт skuId: ValueId
-                 general_logo_image: str):
-        self.current_images = current_images # colorId:img_url
-        self.images_ids = images_ids #imgIds
+    def __init__(self, general_logo_image, current_images):
         self.general_logo_image = general_logo_image
+        self.current_images = current_images
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
-        current_images = {}
-        images_ids = []
         if not any_in_stock(raw_data):
-            return cls(current_images=NON_STATED, images_ids=NON_STATED, general_logo_image=raw_data.detail['logoUrl'])
+            return cls(general_logo_image=NON_STATED, current_images=NON_STATED)
+        general_logo_image = raw_data.detail['logoUrl']
+        sku_to_image_id = {} #skuID:propertyValueId of color
+        image_id_to_sku = {}
+        for item in raw_data.image['spuImage']['arSkuIdRelation']:
+                if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                    image_id_to_sku[item['propertyValueId']] = item['skuId']
+                    sku_to_image_id[item['skuId']] = item['propertyValueId']
+        current_images = {}
+        for sku in sku_to_image_id.keys():
+            imgs = []
+            for item in raw_data.image['spuImage']['images']:
+                if item['propertyValueId'] == sku_to_image_id[sku]:
+                    imgs.append(item['url'])
+            current_images[sku] = imgs
 
-        for i in raw_data.image['spuImage']['arSkuIdRelation']:
-            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-                images_ids.append(i['propertyValueId'])
-
-        for id in images_ids:
-            tmp_imgs = []
-            for img in raw_data.image['spuImage']['images']:
-                if id == img['propertyValueId']:
-                    tmp_imgs.append(img['url'])
-            current_images[id] = tmp_imgs
-
-        if not current_images: current_images = NON_STATED
-        if not images_ids: images_ids = NON_STATED
-
-        return cls(current_images=current_images,
-                   images_ids=images_ids,
-                   general_logo_image=raw_data.detail['logoUrl'])
-
+        return cls(general_logo_image=general_logo_image,
+                   current_images=current_images)
 
 
-# with open('../cologne.json', 'r') as f:
-#     dictData = json.load(f)
-#
-# raw_data = PoizonProductRaw.from_json(json_data=dictData)
-#
-# priceInfo = ParsePriceInfo.from_json(raw_data=raw_data)
-#
-# print(f'types_of_prices = {priceInfo.types_of_prices}')
-# print(f'floor_price = {priceInfo.floor_price}')
-# print(f'max_price = {priceInfo.max_price}')
-# print(f'recommended_prices = {priceInfo.recommended_prices}')
+if __name__ == '__main__':
+    with open('../data.json', 'r') as f:
+        dictData = json.load(f)
+
+    raw_data = PoizonProductRaw.from_json(json_data=dictData)
+
+    priceInfo = ParsePriceInfo.from_json(raw_data=raw_data)
+
+    # print(f'types_of_prices = {priceInfo.types_of_prices}')
+    # print(f'floor_price = {priceInfo.floor_price}')
+    # print(f'max_price = {priceInfo.max_price}')
+    # print(f'recommended_prices = {priceInfo.recommended_prices}')
+
+
+    images = ParseImages.from_json(raw_data=raw_data)
+
+    print(images.current_images)
+    print(images.general_logo_image)
