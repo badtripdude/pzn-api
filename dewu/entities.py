@@ -4,6 +4,8 @@ from base import JsonSerializable
 from poizon_parse_helpers import ParseSizes, ParseColors, ParseProductIds, ParseProductProperties, ParseBrandInfo, ParsePriceInfo, ParseImages
 from raw_data_handlers import PoizonProductRaw
 from base import NON_STATED
+import dataclasses
+
 # class Product:
 #     id: int
 #     title: str
@@ -14,20 +16,6 @@ from base import NON_STATED
 
 
 
-class PoizonCategoryParser(JsonSerializable):
-    """
-    class for getting/updating categories list api: GET /getCategories
-    """
-
-    def __init__(self, categories: Dict[str, str]):
-        self.categories = categories
-
-    @classmethod
-    def from_json(cls, json_data):
-        categories = {}
-        for i in json_data:
-            categories[i["id"]] = i["name"]
-        return cls(categories=categories)
 
 
 
@@ -35,49 +23,54 @@ class PoizonProduct(JsonSerializable):
     """
             class for parsing and keeping data from PoizonProductRaw
     """
+    # TODO: dataclasses
+    @dataclasses.dataclass()
+    class PoizonProductPrice:  # todo есть еще описание(не всегда) каждого вида цены но хз надо ли
+        recommended_prices: List[int]
+        types_of_prices: Dict[int, Dict[int, int]] | NON_STATED
+        floor_price: int
+        max_price: int
 
-    class PoizonProductPrice:  # todo есть еще описание каждого вида цены но хз надо ли
-        def __init__(self, recommended_prices, types_of_prices, floor_price, max_price):
-            self.recommended_prices = recommended_prices
-            self.types_of_prices = types_of_prices
-            self.floor_price = floor_price
-            self.max_price = max_price
-
+    @dataclasses.dataclass()
     class PoizonProductSize:
-        def __init__(self, current_sizes, size_table):
-            self.current_sizes = current_sizes
-            self.size_table = size_table
+        current_sizes: Dict[int, str]
+        size_table: Dict[str, str]
 
+    @dataclasses.dataclass()
     class PoizonProductImages:
-        def __init__(self, general_logo_image, current_images):
-            self.general_logo_image = general_logo_image
-            self.current_images = current_images
+        general_logo_image: str
+        current_images: Dict[int, List[str]]
 
+    @dataclasses.dataclass()
     class PoizonProductDescription:
-        def __init__(self, product_addictive_params, category, title, desc):
-            self.product_addictive_params = product_addictive_params
-            self.category = category
-            self.title = title
-            self.desc = desc
+        product_addictive_params: Dict[str, str]
+        category: str
+        title: str
+        desc: str | NON_STATED
 
+    @dataclasses.dataclass()
     class PoizonProductIds:
-        def __init__(self, color_ids, sku_ids, spu_id, article_number, category_id, brand_id, size_ids):
-            self.color_ids = color_ids
-            self.sku_ids = sku_ids
-            self.spu_id = spu_id
-            self.article_number = article_number
-            self.category_id = category_id
-            self.brand_id = brand_id
-            self.size_ids = size_ids
+        color_ids: Dict[int, int]
+        sku_ids: List[int]
+        spu_id: int
+        article_number: int
+        category_id: int
+        brand_id: int
+        size_ids: Dict[int, str]
 
+    @dataclasses.dataclass()
     class PoizonProductColors:
-        def __init__(self, sku_to_color):
-            self.sku_to_color = sku_to_color
+        sku_to_color: Dict[int, str]
 
+    @dataclasses.dataclass()
     class PoizonProductBrandInfo:
-        def __init__(self, brand, brand_logo):
-            self.brand = brand
-            self.brand_logo = brand_logo
+        brand_name: str
+        brand_logo: str
+
+    #todo delivery duration
+    @dataclasses.dataclass()
+    class PoizonProductDelivery:
+        ...
 
     def __init__(self,
                  sizes: PoizonProductSize,
@@ -85,7 +78,7 @@ class PoizonProduct(JsonSerializable):
                  prices: PoizonProductPrice | NON_STATED,
                  images: PoizonProductImages | NON_STATED,
                  product_ids: PoizonProductIds,
-                 colors: List[str] | NON_STATED,
+                 colors: PoizonProductColors,
                  brand_info: PoizonProductBrandInfo,
                  ):
         self.images = images
@@ -102,13 +95,13 @@ class PoizonProduct(JsonSerializable):
         raw_data = PoizonProductRaw.from_json(json_data=json_data)
         #sizes
         parsed_sizes = ParseSizes.from_json(raw_data=raw_data)
-        sizes = PoizonProduct.PoizonProductSize(current_sizes=parsed_sizes.current_sizes,size_table=parsed_sizes.size_table)
+        sizes = cls.PoizonProductSize(current_sizes=parsed_sizes.current_sizes,size_table=parsed_sizes.size_table)
         #colors
         parsed_colors = ParseColors.from_json(raw_data=raw_data)
-        colors = PoizonProduct.PoizonProductColors(sku_to_color=parsed_colors.sku_to_color)
+        colors = cls.PoizonProductColors(sku_to_color=parsed_colors.sku_to_color)
         #product ids
         parsed_ids = ParseProductIds.from_json(raw_data=raw_data)
-        product_ids = PoizonProduct.PoizonProductIds(color_ids=parsed_ids.color_ids,
+        product_ids = cls.PoizonProductIds(color_ids=parsed_ids.color_ids,
                                                    sku_ids=parsed_ids.sku_ids,
                                                    spu_id=parsed_ids.spu_id,
                                                    article_number=parsed_ids.article_number,
@@ -117,19 +110,18 @@ class PoizonProduct(JsonSerializable):
                                                    size_ids=parsed_ids.size_ids)
         #desc_info
         parsed_desc = ParseProductProperties.from_json(raw_data=raw_data)
-        descriptions = PoizonProduct.PoizonProductDescription(product_addictive_params=parsed_desc.product_addictive_params, category=parsed_desc.category,
+        descriptions = cls.PoizonProductDescription(product_addictive_params=parsed_desc.product_addictive_params, category=parsed_desc.category,
                                                               title=parsed_desc.title, desc=parsed_desc.desc)
         #brand info
         parsed_brand_info = ParseBrandInfo.from_json(raw_data=raw_data)
-        brand_info = PoizonProduct.PoizonProductBrandInfo(brand=parsed_brand_info.brand, brand_logo=parsed_brand_info.brand_logo)
+        brand_info = cls.PoizonProductBrandInfo(brand_name=parsed_brand_info.brand_name, brand_logo=parsed_brand_info.brand_logo)
         #price info
         parsed_prices = ParsePriceInfo.from_json(raw_data=raw_data)
-        prices = PoizonProduct.PoizonProductPrice(recommended_prices=parsed_prices.recommended_prices, types_of_prices=parsed_prices.types_of_prices,
+        prices = cls.PoizonProductPrice(recommended_prices=parsed_prices.recommended_prices, types_of_prices=parsed_prices.types_of_prices,
                            floor_price=parsed_prices.floor_price, max_price=parsed_prices.max_price)
         #imgs 3 positions
         parsed_images = ParseImages.from_json(raw_data=raw_data)
-        images = PoizonProduct.PoizonProductImages(general_logo_image=parsed_images.general_logo_image, current_images=parsed_images.current_images)
-
+        images = cls.PoizonProductImages(general_logo_image=parsed_images.general_logo_image, current_images=parsed_images.current_images)
 
         return cls(
             sizes=sizes,
@@ -144,7 +136,7 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../data.json', 'r') as f:
+    with open('../controlles_all.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
@@ -157,17 +149,21 @@ if (__name__ == "__main__"):
     print(f'floor_price = {a.prices.floor_price}')
     print(f'max_price = {a.prices.max_price}')
 
+    print("\n### SIZES ###")
     print(f'current_sizes = {a.sizes.current_sizes}')
     print(f'size_table = {a.sizes.size_table}')
 
+    print("\n### IMAGES ###")
     print(f'current_images = {a.images.current_images}')
     print(f'general_logo_image = {a.images.general_logo_image}')
 
+    print(f'\n### DESCRIPTIONS ###')
     print(f'product_addictive_params = {a.descriptions.product_addictive_params}')
     print(f'category = {a.descriptions.category}')
     print(f'desc = {a.descriptions.desc}')
     print(f'title = {a.descriptions.title}')
 
+    print(f'\n### IDs ###')
     print(f'color_ids = {a.product_ids.color_ids}')
     print(f'sku_ids = {a.product_ids.sku_ids}')
     print(f'spu_id = {a.product_ids.spu_id}')
@@ -176,7 +172,10 @@ if (__name__ == "__main__"):
     print(f'brand_id = {a.product_ids.brand_id}')
     print(f'size_ids = {a.product_ids.size_ids}')
 
+    print(f'\n### COLORS ###')
     print(f'colors = {a.colors.sku_to_color}')
 
-    print(f'brand info = {a.brand_info.brand}')
+    print(f'\n### BRAND INFO ###')
+    print(f'brand info = {a.brand_info.brand_name}')
     print(f'brand_logo = {a.brand_info.brand_logo}')
+

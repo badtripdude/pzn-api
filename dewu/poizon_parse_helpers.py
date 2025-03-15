@@ -24,9 +24,24 @@ def is_in_stock(sku_id: int, raw_data: PoizonProductRaw) -> bool:
                 return True
     return False
 
+class PoizonCategoryParser(JsonSerializable):
+    """
+    class for getting/updating categories list api: GET /getCategories
+    """
+
+    def __init__(self, categories: Dict[str, str]):
+        self.categories = categories
+
+    @classmethod
+    def from_json(cls, json_data):
+        categories = {}
+        for i in json_data:
+            categories[i["id"]] = i["name"]
+        return cls(categories=categories)
+
 class ParseSizes(JsonSerializable):
     """
-    class that parses all info about sizes: current_sizes, size_ids, size_table
+    class that parses info about sizes: current_sizes, size_table
     """
     def __init__(self,
                  current_sizes: List[int] | NON_STATED,
@@ -39,14 +54,15 @@ class ParseSizes(JsonSerializable):
         if not any_in_stock(raw_data):
             return cls(current_sizes=NON_STATED, size_table=NON_STATED)
 
-        current_sizes = []
+        current_sizes = {}
         size_table = {}
-        for i in raw_data.skus:
-            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-                for j in i["properties"]:
-                    if 'saleProperty' in j:
-                        if j["saleProperty"]["name"] == "尺码":
-                            current_sizes.append(j["saleProperty"]["value"])
+        for item in raw_data.skus:
+            sku_id = item['skuId']
+            if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                for prop in item["properties"]:
+                    if 'saleProperty' in prop:
+                        if prop["saleProperty"]["name"] == "尺码":
+                            current_sizes[sku_id] = prop["saleProperty"]["value"]
 
         if "sizeInfo" in raw_data.sizeDto:
             for i in raw_data.sizeDto["sizeInfo"]["sizeTemplate"]["list"]:
@@ -153,14 +169,14 @@ class ParseProductProperties(JsonSerializable):
 
 class ParseBrandInfo(JsonSerializable):
     def __init__(self,
-                 brand: str,
+                 brand_name: str,
                  brand_logo: str):
-        self.brand = brand
+        self.brand_name = brand_name
         self.brand_logo = brand_logo
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
-        return cls(brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
+        return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
                    brand_logo=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"])
 
 class ParsePriceInfo(JsonSerializable):
