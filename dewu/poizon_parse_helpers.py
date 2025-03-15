@@ -30,19 +30,16 @@ class ParseSizes(JsonSerializable):
     """
     def __init__(self,
                  current_sizes: List[int] | NON_STATED,
-                 size_ids: List[int] | NON_STATED,
                  size_table: Dict[str, str] | NON_STATED,):
         self.current_sizes = current_sizes
-        self.size_ids = size_ids
         self.size_table = size_table
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         if not any_in_stock(raw_data):
-            return cls(current_sizes=NON_STATED, size_ids=NON_STATED, size_table=NON_STATED)
+            return cls(current_sizes=NON_STATED, size_table=NON_STATED)
 
         current_sizes = []
-        size_ids = []
         size_table = {}
         for i in raw_data.skus:
             if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
@@ -50,52 +47,53 @@ class ParseSizes(JsonSerializable):
                     if 'saleProperty' in j:
                         if j["saleProperty"]["name"] == "尺码":
                             current_sizes.append(j["saleProperty"]["value"])
-                            size_ids.append(j["saleProperty"]["propertyValueId"])
 
         if "sizeInfo" in raw_data.sizeDto:
             for i in raw_data.sizeDto["sizeInfo"]["sizeTemplate"]["list"]:
                 size_table[f"{i["sizeKey"]}"] = i["sizeValue"]
 
         if not current_sizes: current_sizes = NON_STATED
-        if not size_ids: size_ids = NON_STATED
         if not size_table: size_table = NON_STATED
 
-        return cls(current_sizes, size_ids, size_table)
+        return cls(current_sizes, size_table)
 
 class ParseColors(JsonSerializable):
     def __init__(self,
-                 current_colors: List[str] | NON_STATED,
-                 color_ids: List[int] | NON_STATED):
+                 current_colors: List[str] | NON_STATED):
         self.current_colors = current_colors
-        self.color_ids = color_ids
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         if not any_in_stock(raw_data):
-            return cls(color_ids=NON_STATED, current_colors=NON_STATED)
+            return cls(current_colors=NON_STATED)
 
         current_colors = []
-        color_ids = []
         for i in raw_data.skus:
             if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
                 for j in i["properties"]:
                     if 'saleProperty' in j:
                         if j["saleProperty"]["name"] == "颜色":
                             current_colors.append(j["saleProperty"]["value"])
-                            color_ids.append(j["saleProperty"]["propertyValueId"])
 
         if not current_colors: current_colors = NON_STATED
-        if not color_ids: color_ids = NON_STATED
 
-        return cls(current_colors, color_ids)
+        return cls(current_colors)
 
 class ParseProductIds(JsonSerializable):
     def __init__(self,
+                 color_ids: Dict[int, int] | NON_STATED,
                  sku_ids: List[int] | NON_STATED,
                  spu_id: int,
-                 article: str):
+                 article_number: str,
+                 category_id: int,
+                 brand_id: str,
+                 size_ids: Dict[int, int]):
+        self.color_ids = color_ids
         self.sku_ids = sku_ids
         self.spu_id = spu_id
-        self.article = article
+        self.article_number = article_number
+        self.category_id = category_id
+        self.brand_id = brand_id
+        self.size_ids = size_ids
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
@@ -104,23 +102,40 @@ class ParseProductIds(JsonSerializable):
             if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
                 sku_ids.append(i['skuId'])
 
-        if not sku_ids: sku_ids = NON_STATED
+        color_ids = {}
+        for item in raw_data.skus:
+            sku_id = item['skuId']
+            if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                for prop in item["properties"]:
+                    if 'saleProperty' in prop:
+                        if prop["saleProperty"]["name"] == "颜色":
+                            color_ids[sku_id] = prop["saleProperty"]["value"]
+        size_ids = {}
+        for item in raw_data.skus:
+            sku_id = item['skuId']
+            if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                for prop in item["properties"]:
+                    if 'saleProperty' in prop:
+                        if prop["saleProperty"]["name"] == "尺码":
+                            size_ids[sku_id] = prop["saleProperty"]["value"]
 
-        return cls(sku_ids=sku_ids,
+        return cls(color_ids=color_ids,
+                   sku_ids=sku_ids,
                    spu_id=raw_data.detail["spuId"],
-                   article=raw_data.detail['articleNumber'])
+                   article_number=raw_data.detail['articleNumber'],
+                   category_id=raw_data.detail["categoryId"],
+                   brand_id=raw_data.detail["brandId"],
+                   size_ids=size_ids)
 
 class ParseProductProperties(JsonSerializable):
     def __init__(self,
                  product_addictive_params: Dict[str, str] | NON_STATED,
                  category: str,
-                 category_id: int,
                  title: str,
                  desc: str | NON_STATED
                  ):
         self.product_addictive_params = product_addictive_params
         self.category = category
-        self.category_id = category_id
         self.title = title
         self.desc = desc
 
@@ -132,23 +147,19 @@ class ParseProductProperties(JsonSerializable):
 
         return cls(product_addictive_params=product_addictive_params,
                    category=raw_data.detail.get("categoryName", NON_STATED),
-                   category_id=raw_data.detail["categoryId"],
                    title=raw_data.detail["title"],
                    desc=raw_data.detail["desc"] if raw_data.detail["desc"] else NON_STATED)
 
 class ParseBrandInfo(JsonSerializable):
     def __init__(self,
                  brand: str,
-                 brand_id: int,
                  brand_logo: str):
         self.brand = brand
-        self.brand_id = brand_id
         self.brand_logo = brand_logo
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         return cls(brand=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
-                   brand_id=raw_data.detail["brandId"],
                    brand_logo=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"])
 
 class ParsePriceInfo(JsonSerializable):
@@ -186,44 +197,6 @@ class ParsePriceInfo(JsonSerializable):
                    floor_price=floor_price,
                    max_price=max_price)
 
-# class ParseImages(JsonSerializable):
-#     def __init__(self,
-#                  current_images: Dict[int, List[str]],
-#                  images_ids: List[str], #TODO сделать дикт skuId: ValueId
-#                  general_logo_image: str):
-#         self.current_images = current_images # colorId:img_url
-#         self.images_ids = images_ids #imgIds
-#         self.general_logo_image = general_logo_image
-#
-#     @classmethod
-#     def from_json(cls, raw_data: PoizonProductRaw):
-#         current_images = {}
-#         images_ids = []
-#         if not any_in_stock(raw_data):
-#             return cls(current_images=NON_STATED, images_ids=NON_STATED, general_logo_image=raw_data.detail['logoUrl'])
-#
-#         for i in raw_data.image['spuImage']['arSkuIdRelation']:
-#             if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-#                 images_ids.append(i['propertyValueId'])
-#
-#         for id in images_ids:
-#             tmp_imgs = []
-#             for img in raw_data.image['spuImage']['images']:
-#                 if id == img['propertyValueId']:
-#                     tmp_imgs.append(img['url'])
-#             current_images[id] = tmp_imgs
-#
-#         if not current_images: current_images = NON_STATED
-#         if not images_ids: images_ids = NON_STATED
-#
-#         return cls(current_images=current_images,
-#                    images_ids=images_ids,
-#                    general_logo_image=raw_data.detail['logoUrl'])
-
-
-
-
-
 class ParseImages(JsonSerializable):
     def __init__(self, general_logo_image, current_images):
         self.general_logo_image = general_logo_image
@@ -253,20 +226,16 @@ class ParseImages(JsonSerializable):
 
 
 if __name__ == '__main__':
-    with open('../data.json', 'r') as f:
+    with open('../controlles_all.json', 'r') as f:
         dictData = json.load(f)
 
     raw_data = PoizonProductRaw.from_json(json_data=dictData)
-
     priceInfo = ParsePriceInfo.from_json(raw_data=raw_data)
-
-    # print(f'types_of_prices = {priceInfo.types_of_prices}')
-    # print(f'floor_price = {priceInfo.floor_price}')
-    # print(f'max_price = {priceInfo.max_price}')
-    # print(f'recommended_prices = {priceInfo.recommended_prices}')
-
-
     images = ParseImages.from_json(raw_data=raw_data)
+    ids = ParseProductIds.from_json(raw_data=raw_data)
 
-    print(images.current_images)
-    print(images.general_logo_image)
+    print(ids.color_ids)
+    print(ids.sku_ids)
+    print(ids.category_id)
+    print(ids.article_number)
+    print(ids.spu_id)

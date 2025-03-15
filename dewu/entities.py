@@ -44,9 +44,8 @@ class PoizonProduct(JsonSerializable):
             self.max_price = max_price
 
     class PoizonProductSize:
-        def __init__(self, current_sizes, size_ids, size_table):
+        def __init__(self, current_sizes, size_table):
             self.current_sizes = current_sizes
-            self.size_ids = size_ids
             self.size_table = size_table
 
     class PoizonProductImages:
@@ -54,49 +53,46 @@ class PoizonProduct(JsonSerializable):
             self.general_logo_image = general_logo_image
             self.current_images = current_images
 
+    class PoizonProductDescription:
+        def __init__(self, product_addictive_params, category, title, desc):
+            self.product_addictive_params = product_addictive_params
+            self.category = category
+            self.title = title
+            self.desc = desc
 
+    class PoizonProductIds:
+        def __init__(self, color_ids, sku_ids, spu_id, article_number, category_id, brand_id, size_ids):
+            self.color_ids = color_ids
+            self.sku_ids = sku_ids
+            self.spu_id = spu_id
+            self.article_number = article_number
+            self.category_id = category_id
+            self.brand_id = brand_id
+            self.size_ids = size_ids
 
 
     def __init__(self,
                  sizes: PoizonProductSize,
+                 descriptions: PoizonProductDescription,
+                 prices: PoizonProductPrice | NON_STATED,
+                 images: PoizonProductImages | NON_STATED,
+                 product_ids: PoizonProductIds,
 
                  current_colors: List[str] | NON_STATED,
-                 color_ids: List[int] | NON_STATED,
-
-                 sku_ids: List[int] | NON_STATED,
-                 spu_id: int,
-                 article: str,
-
-                 product_addictive_params: Dict[str, str] | NON_STATED,
-                 category: str | NON_STATED,
-                 category_id: int,
-                 title: str,
-                 desc: str | NON_STATED,
 
                  brand: str,
-                 brand_id: str,
-                 brand_logo: str,
+                 brand_logo: str
 
-                 prices: PoizonProductPrice | NON_STATED,
 
-                 images: PoizonProductImages | NON_STATED
                  ):
         self.images = images
-        self.product_addictive_params = product_addictive_params
-        self.article = article
-        self.category= category
-        self.category_id = category_id
+        self.product_ids = product_ids
+        self.descriptions = descriptions
+        self.prices = prices
         self.current_colors = current_colors
         self.sizes = sizes
-        self.color_ids = color_ids
-        self.sku_ids = sku_ids  # уникальный
-        self.spu_id = spu_id  # общий
         self.brand = brand
         self.brand_logo = brand_logo
-        self.prices = prices
-        self.brand_id = brand_id
-        self.title = title
-        self.desc = desc
 
     # картинки соотносятся по цветам не по размерам
     @classmethod
@@ -105,28 +101,29 @@ class PoizonProduct(JsonSerializable):
         #sizes
         size_info = ParseSizes.from_json(raw_data=raw_data)
         sizes = PoizonProduct.PoizonProductSize(current_sizes=size_info.current_sizes,
-                                  size_ids=size_info.size_ids,
                                   size_table=size_info.size_table)
         #colors
         color_info = ParseColors.from_json(raw_data=raw_data)
         current_colors = color_info.current_colors
-        color_ids = color_info.color_ids
         #product ids
-        product_ids = ParseProductIds.from_json(raw_data=raw_data)
-        sku_ids = product_ids.sku_ids
-        spu_id = product_ids.spu_id
-        article = product_ids.article
-        #product properties
-        product_properties = ParseProductProperties.from_json(raw_data=raw_data)
-        product_addictive_params = product_properties.product_addictive_params
-        category = product_properties.category
-        category_id = product_properties.category_id
-        title = product_properties.title
-        desc = product_properties.desc
+        product_ids_info = ParseProductIds.from_json(raw_data=raw_data)
+        product_ids = PoizonProduct.PoizonProductIds(color_ids=product_ids_info.color_ids,
+                                                   sku_ids=product_ids_info.sku_ids,
+                                                   spu_id=product_ids_info.spu_id,
+                                                   article_number=product_ids_info.article_number,
+                                                   category_id=product_ids_info.category_id,
+                                                   brand_id=product_ids_info.brand_id,
+                                                   size_ids=product_ids_info.size_ids)
+        #desc_info
+        desc_info = ParseProductProperties.from_json(raw_data=raw_data)
+        descriptions = PoizonProduct.PoizonProductDescription(product_addictive_params=desc_info.product_addictive_params,
+                                                              category=desc_info.category,
+                                                              title=desc_info.title,
+                                                              desc=desc_info.desc)
+
         #brand info
         brand_info = ParseBrandInfo.from_json(raw_data=raw_data)
         brand = brand_info.brand
-        brand_id = brand_info.brand_id
         brand_logo = brand_info.brand_logo
         #price info
         price_info = ParsePriceInfo.from_json(raw_data=raw_data)
@@ -139,18 +136,10 @@ class PoizonProduct(JsonSerializable):
                                      current_images=images_info.current_images)
         return cls(
             sizes=sizes,
+            product_ids=product_ids,
+            descriptions=descriptions,
             current_colors=current_colors,
-            color_ids=color_ids,
-            sku_ids=sku_ids,
-            spu_id=spu_id,
-            article=article,
-            product_addictive_params=product_addictive_params,
-            category=category,
-            category_id=category_id,
-            title=title,
-            desc=desc,
             brand=brand,
-            brand_id=brand_id,
             brand_logo=brand_logo,
             prices=prices,
             images=images
@@ -163,20 +152,10 @@ if (__name__ == "__main__"):
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
-    print(f"colorIds = {a.color_ids}")
-    print(f"skuIds = {a.sku_ids}")
     print(f"current_colors = {a.current_colors}")
     print(f"brand = {a.brand}")
     print(f"brand_logo = {a.brand_logo}")
 
-    print(f"brand_id = {a.brand_id}")
-    print(f"spu_id = {a.spu_id}")
-    print(f"title = {a.title}")
-    print(f"desc = {a.desc}")
-    print(f"category = {a.category}")
-    print(f"category_id = {a.category_id}")
-    print(f"product_addictive_params = {a.product_addictive_params}")
-    print(f"article = {a.article}")
 
     print("\n### PRICES ###")
     print(f"types_of_prices = {a.prices.types_of_prices}")
@@ -185,8 +164,20 @@ if (__name__ == "__main__"):
     print(f'max_price = {a.prices.max_price}')
 
     print(f'current_sizes = {a.sizes.current_sizes}')
-    print(f'size_ids = {a.sizes.size_ids}')
     print(f'size_table = {a.sizes.size_table}')
 
     print(f'current_images = {a.images.current_images}')
     print(f'general_logo_image = {a.images.general_logo_image}')
+
+    print(f'product_addictive_params = {a.descriptions.product_addictive_params}')
+    print(f'category = {a.descriptions.category}')
+    print(f'desc = {a.descriptions.desc}')
+    print(f'title = {a.descriptions.title}')
+
+    print(f'color_ids = {a.product_ids.color_ids}')
+    print(f'sku_ids = {a.product_ids.sku_ids}')
+    print(f'spu_id = {a.product_ids.spu_id}')
+    print(f'article_number = {a.product_ids.article_number}')
+    print(f'category_id = {a.product_ids.category_id}')
+    print(f'brand_id = {a.product_ids.brand_id}')
+    print(f'size_ids = {a.product_ids.size_ids}')
