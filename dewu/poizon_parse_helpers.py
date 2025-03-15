@@ -59,24 +59,25 @@ class ParseSizes(JsonSerializable):
 
 class ParseColors(JsonSerializable):
     def __init__(self,
-                 current_colors: List[str] | NON_STATED):
-        self.current_colors = current_colors
+                 sku_to_color: Dict[int, str] | NON_STATED):
+        self.sku_to_color = sku_to_color
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
         if not any_in_stock(raw_data):
-            return cls(current_colors=NON_STATED)
+            return cls(sku_to_color=NON_STATED)
 
-        current_colors = []
-        for i in raw_data.skus:
-            if is_in_stock(sku_id=i['skuId'], raw_data=raw_data):
-                for j in i["properties"]:
-                    if 'saleProperty' in j:
-                        if j["saleProperty"]["name"] == "颜色":
-                            current_colors.append(j["saleProperty"]["value"])
+        sku_to_color = {}
+        for item in raw_data.skus:
+            sku_id = item['skuId']
+            if is_in_stock(sku_id=item['skuId'], raw_data=raw_data):
+                for prop in item["properties"]:
+                    if 'saleProperty' in prop:
+                        if prop["saleProperty"]["name"] == "颜色":
+                            sku_to_color[sku_id] = prop["saleProperty"]["value"]
 
-        if not current_colors: current_colors = NON_STATED
+        if not sku_to_color: sku_to_color = NON_STATED
 
-        return cls(current_colors)
+        return cls(sku_to_color)
 
 class ParseProductIds(JsonSerializable):
     def __init__(self,
