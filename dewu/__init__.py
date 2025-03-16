@@ -73,13 +73,23 @@ class ProductSearchCard(JsonSerializable):
 
     @classmethod
     def from_json(cls, json_data):
-        # TODO
         return cls(
+            # almost always passed
             title=json_data.get('title'),
             spu_id=json_data.get('spuId'),
             logo_url=json_data.get('logoUrl'),
             images=json_data.get('images'),
-
+            article_number=json_data.get('articleNumber'),
+            # :(
+            price=json_data.get('price'),
+            min_sale_price=json_data.get('minSalePrice'),
+            max_sale_price=json_data.get('maxSalePrice'),
+            sku_id=json_data.get('skuId'),
+            level1_category_id=json_data.get('level1CategoryId'),
+            category_id=json_data.get('categoryId'),
+            brand_id=json_data.get('brandId'),
+            brand_name=json_data.get('brandName'),
+            brand_logo_url=json_data.get('brandLogoUrl'),
         )
 
 
