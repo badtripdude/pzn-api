@@ -101,13 +101,10 @@ class PoizonProduct(JsonSerializable):
         colors = cls.PoizonProductColors(sku_to_color=parsed_colors.sku_to_color)
         #product ids
         parsed_ids = ParseProductIds.from_json(raw_data=raw_data)
-        product_ids = cls.PoizonProductIds(color_ids=parsed_ids.color_ids,
-                                                   sku_ids=parsed_ids.sku_ids,
-                                                   spu_id=parsed_ids.spu_id,
-                                                   article_number=parsed_ids.article_number,
-                                                   category_id=parsed_ids.category_id,
-                                                   brand_id=parsed_ids.brand_id,
-                                                   size_ids=parsed_ids.size_ids)
+        product_ids = cls.PoizonProductIds(color_ids=parsed_ids.color_ids, sku_ids=parsed_ids.sku_ids,
+                                            spu_id=parsed_ids.spu_id, article_number=parsed_ids.article_number,
+                                            category_id=parsed_ids.category_id, brand_id=parsed_ids.brand_id,
+                                            size_ids=parsed_ids.size_ids)
         #desc_info
         parsed_desc = ParseProductProperties.from_json(raw_data=raw_data)
         descriptions = cls.PoizonProductDescription(product_addictive_params=parsed_desc.product_addictive_params, category=parsed_desc.category,
@@ -136,7 +133,7 @@ class PoizonProduct(JsonSerializable):
 
 
 if (__name__ == "__main__"):
-    with open('../controlles_all.json', 'r') as f:
+    with open('../shoes_pdwp.json', 'r') as f:
         dictData = json.load(f)
 
     a = PoizonProduct.from_json(json_data=dictData)
@@ -178,4 +175,9 @@ if (__name__ == "__main__"):
     print(f'\n### BRAND INFO ###')
     print(f'brand info = {a.brand_info.brand_name}')
     print(f'brand_logo = {a.brand_info.brand_logo}')
+
+
+    for item in dictData['skus']:
+        for price in item['price']['prices']:
+            print(f'{price['tradeType']} {price['timeDelivery']} {price['tradeDesc']}')
 
