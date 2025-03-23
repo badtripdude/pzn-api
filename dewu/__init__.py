@@ -1,4 +1,5 @@
 import asyncio
+import re
 import time
 from typing import Unpack
 
@@ -6,7 +7,9 @@ import aiohttp
 from aiohttp.client import _RequestOptions
 from aiohttp.typedefs import StrOrURL
 
-from .entities import JsonSerializable, PoizonProduct
+from . import enums
+from .entities import JsonSerializable, PoizonProduct, ProductSearchResult
+from .enums import SalesData
 
 
 class Limiter:
@@ -48,71 +51,6 @@ class ClientSession(aiohttp.ClientSession):
         return await super().request(method=method, url=url, **kwargs)
 
 
-class ProductSearchCard(JsonSerializable):
-    def __init__(self, title: str = None, spu_id: int = None,
-                 logo_url: str = None, images: list[str] = None, article_number: str = None,
-                 price: int = None, min_sale_price: int = None, max_sale_price: int = None,
-                 spu_min_sale_price: int = None, sku_id: int = None, level1_category_id: int = None,
-                 category_id: int = None, brand_id: int = None, brand_name: str = None,
-                 brand_logo_url: str = None):
-        self.level1_category_id = level1_category_id
-        self.max_sale_price = max_sale_price
-        self.brand_name = brand_name
-        self.min_sale_price = min_sale_price
-        self.sku_id = sku_id
-        self.spu_min_sale_price = spu_min_sale_price
-        self.brand_id = brand_id
-        self.brand_logo_url = brand_logo_url
-        self.category_id = category_id
-        self.price = price
-        self.article_number = article_number
-        self.images = images
-        self.spu_id = spu_id
-        self.logo_url = logo_url
-        self.title = title
-
-    @classmethod
-    def from_json(cls, json_data):
-        return cls(
-            # almost always passed
-            title=json_data.get('title'),
-            spu_id=json_data.get('spuId'),
-            logo_url=json_data.get('logoUrl'),
-            images=json_data.get('images'),
-            article_number=json_data.get('articleNumber'),
-            # :(
-            price=json_data.get('price'),
-            min_sale_price=json_data.get('minSalePrice'),
-            max_sale_price=json_data.get('maxSalePrice'),
-            sku_id=json_data.get('skuId'),
-            level1_category_id=json_data.get('level1CategoryId'),
-            category_id=json_data.get('categoryId'),
-            brand_id=json_data.get('brandId'),
-            brand_name=json_data.get('brandName'),
-            brand_logo_url=json_data.get('brandLogoUrl'),
-        )
-
-
-class ProductSearchResult(JsonSerializable):
-    def __init__(self,
-                 total: int, page: int, last_id: str = None,
-                 product_list: list[ProductSearchCard] = None,
-                 ):
-        self.product_list = product_list
-        self.last_id = last_id
-        self.page = page
-        self.total = total
-
-    @classmethod
-    def from_json(cls, json_data):
-        return cls(
-            total=json_data['total'],
-            page=json_data['page'],
-            last_id=json_data.get('lastId', None),
-            product_list=[ProductSearchCard.from_json(data) for data in json_data.get('productList', [])]
-        )
-
-
 class Poizon:
     # TODO: handle http errors
     BASE_API = 'https://poizon-api.com/api/dewu/'
@@ -152,22 +90,21 @@ class Poizon:
                                  keyword: str = None, lowest_price: int = None,
                                  highest_price: int = None, brand_id: list[int] = None,
                                  front_category_id: list[int] = None, category_id: list[int] = None,
-                                 fit_id: list[int] = None, sort_type: int = None,
-                                 sort_mode: int = None, limit: int = 50,
+                                 fit_id: list[enums.Gender] = None, sort_type: enums.SalesData = None,
+                                 sort_mode: enums.SortMode = None, limit: int = 50,
                                  page: int = 0,
                                  ) -> ProductSearchResult:
-        # TODO: enums
         method = 'searchProducts/v2'
         params = {
             'keyword': keyword,
             'lowestPrice': lowest_price,
             'highestPrice': highest_price,
-            'brandId': brand_id,
-            'frontCategoryId': front_category_id,
-            'categoryId': category_id,
-            'fitId': fit_id,
-            'sortType': sort_type,
-            'sortMode': sort_mode,
+            'brandId': ','.join(map(str, brand_id)) if brand_id else None,
+            'frontCategoryId': ','.join(map(str, front_category_id)) if front_category_id else None,
+            'categoryId': ','.join(map(str, category_id)) if category_id else None,
+            'fitId': ','.join(map(str, [f.value for f in fit_id])) if fit_id else None,
+            'sortType': sort_type.value if sort_type else None,
+            'sortMode': sort_mode.value if sort_mode else None,
             'limit': limit,
             'page': page,
         }
@@ -175,3 +112,15 @@ class Poizon:
         resp = await self.session.request('GET', method, params=filtered_params)
 
         return ProductSearchResult.from_json(await resp.json())
+
+    async def extract_spu_id_by_url(self, url: str):
+        url_pattern = re.compile(r'https?://[^\s]+')
+        match = url_pattern.search(url)
+
+        if not match:
+            raise ValueError("URL не найден в переданной строке.")
+
+        extracted_url = match.group(0)
+        method = 'convertLinkToSpuId'
+        response = await self.session.request("GET", method, params={'link': extracted_url})
+        return await response.json()

@@ -11,7 +11,7 @@ class Gender(Enum):
     UNISEX = 1  # Унисекс
 
 
-class SortDirection(Enum):
+class SortMode(Enum):
     DESCENDING = 1  # Убывание
     ASCENDING = 0  # Возрастание
 
