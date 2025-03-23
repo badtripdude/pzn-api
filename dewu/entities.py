@@ -121,6 +121,7 @@ class PoizonProduct(JsonSerializable):
         max_price: int
         stock: int
         sku_ids: List[int]
+        variants: Dict[int, Dict[int, Dict[str, str]]]
 
     @dataclasses.dataclass()
     class PoizonProductSizeTable:
@@ -173,7 +174,8 @@ class PoizonProduct(JsonSerializable):
                                        floor_price=parsed_stock.floor_price,
                                        max_price=parsed_stock.max_price,
                                        stock=parsed_stock.stock,
-                                       sku_ids=parsed_stock.sku_ids)
+                                       sku_ids=parsed_stock.sku_ids,
+                                       variants=parsed_stock.variants)
 
         parsed_size_table = ParseSizeTable.from_json(raw_data=raw_data)
         size_table = cls.PoizonProductSizeTable(size_table=parsed_size_table.size_table)

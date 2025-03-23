@@ -285,7 +285,8 @@ class ParseStock(JsonSerializable):
                  floor_price: int | NON_STATED,
                  max_price: int | NON_STATED,
                  stock: Dict[int, int] | NON_STATED,
-                 sku_ids: List[int] | NON_STATED):
+                 sku_ids: List[int] | NON_STATED,
+                 variants: Dict[int, Dict[str, str]]):
         self.recommended_prices = recommended_prices
         self.types_of_prices = types_of_prices
         self.types_of_prices_desc = types_of_prices_desc
@@ -293,6 +294,7 @@ class ParseStock(JsonSerializable):
         self.max_price = max_price
         self.stock = stock
         self.sku_ids = sku_ids
+        self.variants = variants
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
@@ -321,6 +323,14 @@ class ParseStock(JsonSerializable):
         sku_ids = []
         for i in raw_data.skus:
             sku_ids.append(i['skuId'])
+        variants = {}
+        for item in raw_data.skus:
+            dict_of_props = {}
+            for prop in item['properties']:
+                dict_of_props[prop['saleProperty']['name']] = prop['saleProperty']['value']
+            variants[item['skuId']] = dict_of_props
+
+
 
         return cls(recommended_prices=recommended_prices,
                    types_of_prices=types_of_prices,
@@ -328,7 +338,8 @@ class ParseStock(JsonSerializable):
                    floor_price=floor_price,
                    max_price=max_price,
                    stock=stock,
-                   sku_ids=sku_ids
+                   sku_ids=sku_ids,
+                   variants=variants
                    )
 
 class ParseSizeTable(JsonSerializable):
