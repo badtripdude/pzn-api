@@ -348,9 +348,11 @@ class ParseSizeTable(JsonSerializable):
 class Images(JsonSerializable):
     def __init__(self,
                  general_logo_url: str,
-                 sku_to_image_url: Dict):
+                 sku_to_image_url: Dict,
+                 all_images: List[str]):
         self.general_logo_url = general_logo_url
         self.sku_to_image_url = sku_to_image_url
+        self.all_images = all_images
 
     @classmethod
     def from_json(cls, raw_data: PoizonProductRaw):
@@ -367,9 +369,14 @@ class Images(JsonSerializable):
                 if item['propertyValueId'] == sku_to_image_id[sku]:
                     imgs.append(item['url'])
             sku_to_image_url[sku] = imgs
+        all_images = []
+        for item in raw_data.image['spuImage']['images']:
+            all_images.append(item['url'])
+
 
         return cls(general_logo_url=general_logo_url,
-                   sku_to_image_url=sku_to_image_url)
+                   sku_to_image_url=sku_to_image_url,
+                   all_images=all_images)
 
 class ParseBrand(JsonSerializable):
     def __init__(self,
