@@ -1,8 +1,8 @@
 from typing import List, Dict
-from base import JsonSerializable
-from poizon_parse_helpers import ParseBrand, ParseSizeTable, ParseStock, ParseProductCore, PoizonProductRaw, Images
-from raw_data_handlers import PoizonProductRaw
-from base import NON_STATED
+from .base import JsonSerializable
+from .poizon_parse_helpers import ParseBrand, ParseSizeTable, ParseStock, ParseProductCore, PoizonProductRaw, Images
+from .raw_data_handlers import PoizonProductRaw
+from .base import NON_STATED
 import dataclasses
 
 # class Product:
@@ -26,42 +26,7 @@ class PoizonProduct(JsonSerializable):
     #     floor_price: int | NON_STATED
     #     max_price: int
     #
-    # @dataclasses.dataclass()
-    # class PoizonProductSize:
-    #     current_sizes: Dict[int, str]
-    #     size_table: Dict[str, str]
-    #
-    # @dataclasses.dataclass()
-    # class PoizonProductImages:
-    #     general_logo_image: str
-    #     current_images: Dict[int, List[str]]
-    #
-    # @dataclasses.dataclass()
-    # class PoizonProductDescription:
-    #     product_addictive_params: Dict[str, str]
-    #     category: str
-    #     title: str
-    #     desc: str | NON_STATED
-    #
-    # @dataclasses.dataclass()
-    # class PoizonProductIdentifiers:
-    #     color_ids: Dict[int, int]
-    #     sku_ids: List[int]
-    #     spu_id: int
-    #     article_number: int
-    #     category_id: int
-    #     brand_id: int
-    #     size_ids: Dict[int, str]
-    #
-    # @dataclasses.dataclass()
-    # class PoizonProductColors:
-    #     sku_to_color: Dict[int, str]
-    #
-    # @dataclasses.dataclass()
-    # class PoizonProductBrandInfo:
-    #     brand_name: str
-    #     brand_logo: str
-    #
+
     # #todo delivery duration
     # @dataclasses.dataclass()
     # class PoizonProductDelivery:

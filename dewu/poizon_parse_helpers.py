@@ -1,7 +1,6 @@
-import json
 from typing import List, Dict
-from base import JsonSerializable, NON_STATED
-from raw_data_handlers import PoizonProductRaw
+from .base import JsonSerializable, NON_STATED
+from .raw_data_handlers import PoizonProductRaw
 
 #todo не уверен в верности проверки
 def any_in_stock(raw_data: PoizonProductRaw) -> bool:

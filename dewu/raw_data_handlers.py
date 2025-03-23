@@ -1,6 +1,6 @@
-from base import JsonSerializable
+from .base import JsonSerializable
 from typing import List, Dict, Optional
-from base import NON_STATED
+from .base import NON_STATED
 
 class PoizonProductRaw(JsonSerializable):
     """
