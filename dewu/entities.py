@@ -28,9 +28,7 @@ class PoizonProduct(JsonSerializable):
     #
 
     # #todo delivery duration
-    # @dataclasses.dataclass()
     # class PoizonProductDelivery:
-    #     ...
     # # 3 -eu
     # # 2 - ch
     # # 95 - 95
@@ -65,6 +63,7 @@ class PoizonProduct(JsonSerializable):
     class PoizonProductImages:
         general_logo_url: str
         sku_to_image_url: Dict[int, List[str]]
+        all_images: List[str]
 
     @dataclasses.dataclass()
     class PoizonProductBrand:
@@ -115,7 +114,8 @@ class PoizonProduct(JsonSerializable):
 
         parsed_images = Images.from_json(raw_data=raw_data)
         images = cls.PoizonProductImages(general_logo_url=parsed_images.general_logo_url,
-                                         sku_to_image_url=parsed_images.sku_to_image_url)
+                                         sku_to_image_url=parsed_images.sku_to_image_url,
+                                         all_images=parsed_images.all_images)
 
         parsed_brand = ParseBrand.from_json(raw_data=raw_data)
         brand = cls.PoizonProductBrand(brand_name=parsed_brand.brand_name,
