@@ -57,13 +57,15 @@ class ProductStock(JsonSerializable):
         recommended_prices = {}
         for item in raw_data.skus: recommended_prices[item['skuId']] = item['authPrice']
 
-        types_of_prices = {}
-        for item in raw_data.skus:
-            sku_id = item['skuId']
-            prices = {}
-            for price in item['price']['prices']:
-                prices[price['tradeType']] = price['price']
-                types_of_prices[sku_id] = prices
+        if 'price' in raw_data.skus[0]:
+            types_of_prices = {}
+            for item in raw_data.skus:
+                sku_id = item['skuId']
+                prices = {}
+                for price in item['price']['prices']:
+                    prices[price['tradeType']] = price['price']
+                    types_of_prices[sku_id] = prices
+        else: types_of_prices = NON_STATED
 
         if 'item' in raw_data.price:
             floor_price = raw_data.price['item']['floorPrice']
@@ -73,19 +75,23 @@ class ProductStock(JsonSerializable):
             max_price = NON_STATED
 
         stock = {}
-        for item in raw_data.skus:
-            stock[item['skuId']] = item['price']['quantity']
+        if 'price' in raw_data.skus[0]:
+            for item in raw_data.skus:
+                stock[item['skuId']] = item['price']['quantity']
+        else: stock = NON_STATED
 
         sku_ids = []
         for i in raw_data.skus:
             sku_ids.append(i['skuId'])
-        variants = {}
-        for item in raw_data.skus:
-            dict_of_props = {}
-            for prop in item['properties']:
-                dict_of_props[prop['saleProperty']['name']] = prop['saleProperty']['value']
-            variants[item['skuId']] = dict_of_props
 
+        if 'price' in raw_data.skus[0]:
+            variants = {}
+            for item in raw_data.skus:
+                dict_of_props = {}
+                for prop in item['properties']:
+                    dict_of_props[prop['saleProperty']['name']] = prop['saleProperty']['value']
+                variants[item['skuId']] = dict_of_props
+        else: variants = NON_STATED
 
 
         return cls(recommended_prices=recommended_prices,

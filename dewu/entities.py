@@ -1,8 +1,7 @@
 import dataclasses
 from typing import List, Dict
 
-from .base import JsonSerializable
-from .base import NON_STATED
+from .base import JsonSerializable, NON_STATED
 from dewu.utils.parse_helpers import ProductBrand, ProductSizeTable, ProductStock, ProductCore, ProductImages
 from .raw_data_handlers import PoizonProductRaw
 
