@@ -2,28 +2,6 @@ from typing import List, Dict
 from dewu.base import JsonSerializable, NON_STATED
 from dewu.raw_data_handlers import PoizonProductRaw
 
-#todo не уверен в верности проверки
-def any_in_stock(raw_data: PoizonProductRaw) -> bool:
-    nothing_in_stock = True
-    if raw_data.price:
-        if 'price' not in raw_data.skus[0]:
-            return False
-    for sku in raw_data.skus:
-        if 'price' in sku:
-            if int(sku['price']['quantity']) != 0:
-                nothing_in_stock = False
-    if nothing_in_stock:
-        return False
-    return True
-def is_in_stock(sku_id: int, raw_data: PoizonProductRaw) -> bool:
-    if 'price' not in raw_data.skus[0]:
-        return False
-
-    for sku in raw_data.skus:
-            if sku['skuId'] == sku_id and sku['price']['quantity'] != 0:
-                return True
-    return False
-
 # new
 class ProductCore(JsonSerializable):
     def __init__(self, additional_params: Dict[str, str],
@@ -46,6 +24,7 @@ class ProductCore(JsonSerializable):
         product_addictive_params = {}
         for i in raw_data.basicParam['basicList']:
             product_addictive_params[i["key"]] = i["value"]
+
         return cls(additional_params=product_addictive_params,
                    category = raw_data.detail["categoryName"],
                    category_id = raw_data.detail["categoryId"],
@@ -180,34 +159,3 @@ class ProductBrand(JsonSerializable):
         return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
                    brand_id=raw_data.detail["brandId"])
-
-
-# if (__name__ == "__main__"):
-#     with open('../double_trans_shoes.json', 'r') as f:
-#         dictData = json.load(f)
-#
-# a = ParseStock.from_json(raw_data=PoizonProductRaw.from_json(dictData))
-#
-# print(a.types_of_prices)
-# print(a.types_of_prices_desc)
-# print(a.recommended_prices)
-# print(a.floor_price)
-# print('max_price=', a.max_price)
-# print('sku_ids=', a.sku_ids)
-# print('stock=', a.stock)
-#
-# b = ParseProductCore.from_json(raw_data=PoizonProductRaw.from_json(dictData))
-# print(b.additional_params)
-# print(b.category)
-# print(b.category_id)
-# print(b.title)
-# print('desc=', b.description)
-# print(b.article_number)
-# print(b.spu_id)
-#
-# s = ParseSizeTable.from_json(raw_data=PoizonProductRaw.from_json(dictData))
-# print('size_table=', s.size_table)
-#
-# i = Images.from_json(raw_data=PoizonProductRaw.from_json(dictData))
-# print('general_logo_url=', i.general_logo_url)
-# print('sku_to_image_url=', i.sku_to_image_url)
