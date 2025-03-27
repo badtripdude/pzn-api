@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "poizon-api"
+version = "0.1.0"
+authors = [
+    {name = "Ratmir", email = "ratmirshagivaleev@gmail.com"},
+]
+description = ""
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "aiohttp==3.11.13",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/badtripdude/poizon-api"
