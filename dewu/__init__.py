@@ -13,8 +13,10 @@ from .utils import Limiter
 
 
 class ClientSession(aiohttp.ClientSession):
+    REQUESTS_PER_SECOND = 0.5
+
     def __init__(self, *args, **kwargs):
-        self.limiter = Limiter(0.5)
+        self.limiter = Limiter(self.REQUESTS_PER_SECOND)
         super().__init__(*args, **kwargs)
 
     async def request(
@@ -30,38 +32,37 @@ class ClientSession(aiohttp.ClientSession):
 
 
 class Poizon:
-    # TODO: handle http errors
     BASE_API = 'https://poizon-api.com/api/dewu/'
 
     def __init__(self, api_key):
-        self.api_key = api_key
-        self.session: aiohttp.ClientSession = None
+        self._api_key = api_key
+        self._session: aiohttp.ClientSession = None
 
     async def __aenter__(self):
-        self.session = ClientSession(self.BASE_API, headers={
+        self._session = ClientSession(self.BASE_API, headers={
             'accept': 'application/json',
-            'apikey': self.api_key
+            'apikey': self._api_key
         })
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.close()
+        await self._session.close()
 
     async def get_product_detail_with_price(self, spu_id: int) -> PoizonProduct:
         method = 'productDetailWithPrice'
-        res = await self.session.request("GET", method, params={'spuId': spu_id})
+        res = await self._session.request("GET", method, params={'spuId': spu_id})
         return entities.PoizonProduct.from_json(await res.json())
 
     async def get_product_detail(self, spu_id: str) -> PoizonProduct:
         method = 'productDetail'
-        res = await self.session.request("GET", method, params={'spuId': spu_id})
+        res = await self._session.request("GET", method, params={'spuId': spu_id})
         return entities.PoizonProduct.from_json(await res.json())
 
     async def search_products_v1(self, keyword: str, limit: int = 50, page: int = 0):
         method = 'searchProducts'
-        response = await self.session.request("GET", method, params={'keyword': keyword,
-                                                                     'limit': limit,
-                                                                     'page': page})
+        response = await self._session.request("GET", method, params={'keyword': keyword,
+                                                                      'limit': limit,
+                                                                      'page': page})
         return await response.json()
 
     async def search_products_v2(self,
@@ -87,7 +88,7 @@ class Poizon:
             'page': page,
         }
         filtered_params = {k: v for k, v in params.items() if v is not None}
-        resp = await self.session.request('GET', method, params=filtered_params)
+        resp = await self._session.request('GET', method, params=filtered_params)
 
         return ProductSearchResult.from_json(await resp.json())
 
@@ -100,5 +101,5 @@ class Poizon:
 
         extracted_url = match.group(0)
         method = 'convertLinkToSpuId'
-        response = await self.session.request("GET", method, params={'link': extracted_url})
+        response = await self._session.request("GET", method, params={'link': extracted_url})
         return await response.json()

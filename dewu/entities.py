@@ -1,17 +1,6 @@
-import dataclasses
-from typing import List, Dict
-
-from .base import JsonSerializable, NON_STATED
 from dewu.utils.parse_helpers import ProductBrand, ProductSizeTable, ProductStock, ProductCore, ProductImages
+from .base import JsonSerializable
 from .raw_data_handlers import PoizonProductRaw
-
-
-# class Product:
-#     id: int
-#     title: str
-#     desc: str
-#     images: list
-#     category: str
 
 
 class ProductSearchCard(JsonSerializable):
@@ -60,6 +49,10 @@ class ProductSearchCard(JsonSerializable):
 
 
 class ProductSearchResult(JsonSerializable):
+    """
+    class represents search results data
+    """
+
     def __init__(self,
                  total: int, page: int, last_id: str = None,
                  product_list: list[ProductSearchCard] = None,

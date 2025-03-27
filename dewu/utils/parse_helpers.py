@@ -1,6 +1,8 @@
 from typing import List, Dict
+
 from dewu.base import JsonSerializable, NON_STATED
 from dewu.raw_data_handlers import PoizonProductRaw
+
 
 # new
 class ProductCore(JsonSerializable):
@@ -26,12 +28,13 @@ class ProductCore(JsonSerializable):
             product_addictive_params[i["key"]] = i["value"]
 
         return cls(additional_params=product_addictive_params,
-                   category = raw_data.detail["categoryName"],
-                   category_id = raw_data.detail["categoryId"],
-                   title = raw_data.detail["title"],
-                   description = raw_data.detail["desc"] if raw_data.detail["desc"] else NON_STATED,
+                   category=raw_data.detail["categoryName"],
+                   category_id=raw_data.detail["categoryId"],
+                   title=raw_data.detail["title"],
+                   description=raw_data.detail["desc"] if raw_data.detail["desc"] else NON_STATED,
                    article_number=raw_data.detail['articleNumber'],
-                   spu_id = raw_data.detail["spuId"])
+                   spu_id=raw_data.detail["spuId"])
+
 
 class ProductStock(JsonSerializable):
     def __init__(self,
@@ -65,7 +68,8 @@ class ProductStock(JsonSerializable):
                 for price in item['price']['prices']:
                     prices[price['tradeType']] = price['price']
                     types_of_prices[sku_id] = prices
-        else: types_of_prices = NON_STATED
+        else:
+            types_of_prices = NON_STATED
 
         if 'item' in raw_data.price:
             floor_price = raw_data.price['item']['floorPrice']
@@ -78,7 +82,8 @@ class ProductStock(JsonSerializable):
         if 'price' in raw_data.skus[0]:
             for item in raw_data.skus:
                 stock[item['skuId']] = item['price']['quantity']
-        else: stock = NON_STATED
+        else:
+            stock = NON_STATED
 
         sku_ids = []
         for i in raw_data.skus:
@@ -91,8 +96,8 @@ class ProductStock(JsonSerializable):
                 for prop in item['properties']:
                     dict_of_props[prop['saleProperty']['name']] = prop['saleProperty']['value']
                 variants[item['skuId']] = dict_of_props
-        else: variants = NON_STATED
-
+        else:
+            variants = NON_STATED
 
         return cls(recommended_prices=recommended_prices,
                    types_of_prices=types_of_prices,
@@ -103,6 +108,7 @@ class ProductStock(JsonSerializable):
                    sku_ids=sku_ids,
                    variants=variants
                    )
+
 
 class ProductSizeTable(JsonSerializable):
     def __init__(self, size_table: List[int] | NON_STATED):
@@ -117,6 +123,7 @@ class ProductSizeTable(JsonSerializable):
                 size_table[f"{i["sizeKey"]}"] = i["sizeValue"]
 
         return cls(size_table=size_table)
+
 
 class ProductImages(JsonSerializable):
     def __init__(self,
@@ -146,10 +153,10 @@ class ProductImages(JsonSerializable):
         for item in raw_data.image['spuImage']['images']:
             all_images.append(item['url'])
 
-
         return cls(general_logo_url=general_logo_url,
                    sku_to_image_url=sku_to_image_url,
                    all_images=all_images)
+
 
 class ProductBrand(JsonSerializable):
     def __init__(self,

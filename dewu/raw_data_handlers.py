@@ -1,18 +1,22 @@
+from typing import List, Dict
+
 from .base import JsonSerializable
-from typing import List, Dict, Optional
 from .base import NON_STATED
+
+
 # todo add param that diff prodDetail and prodDetailWithPrice
 class PoizonProductRaw(JsonSerializable):
     """
         получение сырых данных с пойзона (практически сырой json)
 
     """
+
     def __init__(self,
                  price: Dict,
                  detail: Dict,
                  frontLabelSummaryDTO: Dict,
                  lastSold: Dict | NON_STATED,
-                 image: Dict ,
+                 image: Dict,
                  spuGroupList: Dict | NON_STATED,
                  saleProperties: Dict | NON_STATED,
                  basicParam: Dict,
