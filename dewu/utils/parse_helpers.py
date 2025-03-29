@@ -59,7 +59,7 @@ Attributes:
     max_price: highest price of all the products in the product card
     stock: dict{sku_id: stock quantity}, relation between product sku_id and stock quantity
     sku_ids: list of all Stock Keeping Unit identifiers (every single product identifiers in product card)
-    variants: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
+    sku_to_variant: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
     """
 
     def __init__(self,
