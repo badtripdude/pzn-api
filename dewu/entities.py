@@ -71,7 +71,14 @@ class ProductSearchResult(JsonSerializable):
 
 class PoizonProduct(JsonSerializable):
     """
-            class for parsing and keeping data from PoizonProductRaw
+    class for parsing and keeping data from PoizonProductRaw
+
+Attributes:
+    core: contains core information about product card, for example desc, title, category, article etc.
+    stock: contains all stock information about product card, for example prices etc.
+    size_table: contains only size table for a product card
+    images: contains images for product card, for example sku to image, all images etc.
+    brand: contains brand information about product card, for example brand name, logo etc.
     """
 
     def __init__(self,

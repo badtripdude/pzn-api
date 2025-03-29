@@ -65,7 +65,7 @@ Attributes:
                  max_price: int | NON_STATED,
                  stock: Dict[int, int] | NON_STATED,
                  sku_ids: List[int] | NON_STATED,
-                 variants: Dict[int, Dict[str, str]]):
+                 sku_to_variant: Dict[int, Dict[str, str]]):
         self.recommended_prices = recommended_prices
         self.types_of_prices = types_of_prices
         self.types_of_prices_desc = types_of_prices_desc
@@ -73,7 +73,7 @@ Attributes:
         self.max_price = max_price
         self.stock = stock
         self.sku_ids = sku_ids
-        self.variants = variants
+        self.sku_to_variant = sku_to_variant
 
     @classmethod
     def from_json(cls, raw_data: ProductRaw):
@@ -110,14 +110,14 @@ Attributes:
             sku_ids.append(i['skuId'])
 
         if 'price' in raw_data.skus[0]:
-            variants = {}
+            sku_to_variant = {}
             for item in raw_data.skus:
                 dict_of_props = {}
                 for prop in item['properties']:
                     dict_of_props[prop['saleProperty']['name']] = prop['saleProperty']['value']
-                variants[item['skuId']] = dict_of_props
+                sku_to_variant[item['skuId']] = dict_of_props
         else:
-            variants = NON_STATED
+            sku_to_variant = NON_STATED
 
         return cls(recommended_prices=recommended_prices,
                    types_of_prices=types_of_prices,
@@ -126,7 +126,7 @@ Attributes:
                    max_price=max_price,
                    stock=stock,
                    sku_ids=sku_ids,
-                   variants=variants
+                   sku_to_variant=sku_to_variant
                    )
 
 class ProductSizeTable(JsonSerializable):
