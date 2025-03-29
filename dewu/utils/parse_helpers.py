@@ -3,6 +3,17 @@ from dewu.base import JsonSerializable, NON_STATED
 from dewu.raw_data_handlers import PoizonProductRaw
 
 class ProductCore(JsonSerializable):
+    """
+    contains product core info
+
+Attributes:
+    category: name of the product category
+    category_id: identifier of category
+    title: title of product
+    description: description of product
+    article_number: article number of product
+    spu_id: Standard Product Unit identifier
+    """
     def __init__(self, additional_params: Dict[str, str],
                  category: str,
                  category_id: int,
@@ -32,16 +43,25 @@ class ProductCore(JsonSerializable):
                    article_number=raw_data.detail['articleNumber'],
                    spu_id=raw_data.detail["spuId"])
 
-
 class ProductStock(JsonSerializable):
     """
-    keeps information about stock parameters of product such as prices, stock amount, price limits etc.
+    keeps information about stock parameters of product.
+
+Attributes:
+    recommended_prices: relation between product sku_id and price that is recommended for it by Poizon
+    types_of_prices: dict{sku_id: {type of trade: price}} relation between product sku_id and dict of its prices (that depends on trade type)
+    types_of_prices_desc:  str description of types_of_prices param (optional)
+    min_price: lowest price of all the products in the product card
+    max_price: highest price of all the products in the product card
+    stock: dict{sku_id: stock quantity}, relation between product sku_id and stock quantity
+    sku_ids: list of all Stock Keeping Unit identifiers (every single product identifiers in product card)
+    variants: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
     """
     def __init__(self,
                  recommended_prices: Dict[int, int] | NON_STATED,
                  types_of_prices: Dict[int, Dict[int, int]] | NON_STATED,
                  types_of_prices_desc: str,
-                 floor_price: int | NON_STATED,
+                 min_price: int | NON_STATED,
                  max_price: int | NON_STATED,
                  stock: Dict[int, int] | NON_STATED,
                  sku_ids: List[int] | NON_STATED,
@@ -49,7 +69,7 @@ class ProductStock(JsonSerializable):
         self.recommended_prices = recommended_prices
         self.types_of_prices = types_of_prices
         self.types_of_prices_desc = types_of_prices_desc
-        self.floor_price = floor_price
+        self.min_price = min_price
         self.max_price = max_price
         self.stock = stock
         self.sku_ids = sku_ids
@@ -72,10 +92,10 @@ class ProductStock(JsonSerializable):
             types_of_prices = NON_STATED
 
         if 'item' in raw_data.price:
-            floor_price = raw_data.price['item']['floorPrice']
+            min_price = raw_data.price['item']['floorPrice']
             max_price = raw_data.price['item']['maxPrice']
         else:
-            floor_price = NON_STATED
+            min_price = NON_STATED
             max_price = NON_STATED
 
         stock = {}
@@ -102,7 +122,7 @@ class ProductStock(JsonSerializable):
         return cls(recommended_prices=recommended_prices,
                    types_of_prices=types_of_prices,
                    types_of_prices_desc=NON_STATED,
-                   floor_price=floor_price,
+                   min_price=min_price,
                    max_price=max_price,
                    stock=stock,
                    sku_ids=sku_ids,
