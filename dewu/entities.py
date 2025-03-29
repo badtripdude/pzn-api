@@ -47,12 +47,10 @@ class ProductSearchCard(JsonSerializable):
             brand_logo_url=json_data.get('brandLogoUrl'),
         )
 
-
 class ProductSearchResult(JsonSerializable):
     """
     class represents search results data
     """
-
     def __init__(self,
                  total: int, page: int, last_id: str = None,
                  product_list: list[ProductSearchCard] = None,
@@ -70,7 +68,6 @@ class ProductSearchResult(JsonSerializable):
             last_id=json_data.get('lastId', None),
             product_list=[ProductSearchCard.from_json(data) for data in json_data.get('productList', [])]
         )
-
 
 class PoizonProduct(JsonSerializable):
     """

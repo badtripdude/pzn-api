@@ -1,10 +1,7 @@
 from typing import List, Dict
-
 from dewu.base import JsonSerializable, NON_STATED
 from dewu.raw_data_handlers import PoizonProductRaw
 
-
-# new
 class ProductCore(JsonSerializable):
     def __init__(self, additional_params: Dict[str, str],
                  category: str,
@@ -37,6 +34,9 @@ class ProductCore(JsonSerializable):
 
 
 class ProductStock(JsonSerializable):
+    """
+    keeps information about stock parameters of product such as prices, stock amount, price limits etc.
+    """
     def __init__(self,
                  recommended_prices: Dict[int, int] | NON_STATED,
                  types_of_prices: Dict[int, Dict[int, int]] | NON_STATED,
@@ -109,8 +109,10 @@ class ProductStock(JsonSerializable):
                    variants=variants
                    )
 
-
 class ProductSizeTable(JsonSerializable):
+    """
+    keeps only the size table of a product
+    """
     def __init__(self, size_table: List[int] | NON_STATED):
         self.size_table = size_table
 
@@ -124,8 +126,10 @@ class ProductSizeTable(JsonSerializable):
 
         return cls(size_table=size_table)
 
-
 class ProductImages(JsonSerializable):
+    """
+    keeps information about product images
+    """
     def __init__(self,
                  general_logo_url: str,
                  sku_to_image_url: Dict,
@@ -157,8 +161,10 @@ class ProductImages(JsonSerializable):
                    sku_to_image_url=sku_to_image_url,
                    all_images=all_images)
 
-
 class ProductBrand(JsonSerializable):
+    """
+    keeps information about product brand params
+    """
     def __init__(self,
                  brand_name: str,
                  brand_logo_url: str,
