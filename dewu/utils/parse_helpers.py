@@ -1,6 +1,6 @@
 from typing import List, Dict
 from dewu.base import JsonSerializable, NON_STATED
-from dewu.raw_data_handlers import PoizonProductRaw
+from dewu.raw_data_handlers import ProductRaw
 
 class ProductCore(JsonSerializable):
     """
@@ -30,7 +30,7 @@ Attributes:
         self.spu_id = spu_id
 
     @classmethod
-    def from_json(cls, raw_data: PoizonProductRaw):
+    def from_json(cls, raw_data: ProductRaw):
         product_addictive_params = {}
         for i in raw_data.basicParam['basicList']:
             product_addictive_params[i["key"]] = i["value"]
@@ -76,7 +76,7 @@ Attributes:
         self.variants = variants
 
     @classmethod
-    def from_json(cls, raw_data: PoizonProductRaw):
+    def from_json(cls, raw_data: ProductRaw):
         recommended_prices = {}
         for item in raw_data.skus: recommended_prices[item['skuId']] = item['authPrice']
 
@@ -137,7 +137,7 @@ class ProductSizeTable(JsonSerializable):
         self.size_table = size_table
 
     @classmethod
-    def from_json(cls, raw_data: PoizonProductRaw):
+    def from_json(cls, raw_data: ProductRaw):
         size_table = {}
 
         if "sizeInfo" in raw_data.sizeDto:
@@ -159,7 +159,7 @@ class ProductImages(JsonSerializable):
         self.all_images = all_images
 
     @classmethod
-    def from_json(cls, raw_data: PoizonProductRaw):
+    def from_json(cls, raw_data: ProductRaw):
         general_logo_url = raw_data.detail['logoUrl']
         sku_to_image_id = {}  # skuID:propertyValueId of color
         image_id_to_sku = {}
@@ -194,7 +194,7 @@ class ProductBrand(JsonSerializable):
         self.brand_id = brand_id
 
     @classmethod
-    def from_json(cls, raw_data: PoizonProductRaw):
+    def from_json(cls, raw_data: ProductRaw):
         return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
                    brand_id=raw_data.detail["brandId"])

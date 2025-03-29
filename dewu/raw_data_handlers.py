@@ -5,7 +5,7 @@ from .base import NON_STATED
 
 
 # todo add param that diff prodDetail and prodDetailWithPrice
-class PoizonProductRaw(JsonSerializable):
+class ProductRaw(JsonSerializable):
     """
         получение сырых данных с пойзона (практически сырой json)
 

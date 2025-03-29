@@ -1,6 +1,6 @@
 from dewu.utils.parse_helpers import ProductBrand, ProductSizeTable, ProductStock, ProductCore, ProductImages
 from .base import JsonSerializable
-from .raw_data_handlers import PoizonProductRaw
+from .raw_data_handlers import ProductRaw
 
 
 class ProductSearchCard(JsonSerializable):
@@ -89,7 +89,7 @@ class PoizonProduct(JsonSerializable):
 
     @classmethod
     def from_json(cls, json_data):
-        raw_data = PoizonProductRaw.from_json(json_data=json_data)
+        raw_data = ProductRaw.from_json(json_data=json_data)
 
         return cls(
             core=ProductCore.from_json(raw_data=raw_data),
