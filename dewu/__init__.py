@@ -7,7 +7,7 @@ from aiohttp.client import _RequestOptions
 from aiohttp.typedefs import StrOrURL
 
 from . import enums
-from .entities import JsonSerializable, PoizonProduct, ProductSearchResult
+from .entities import JsonSerializable, DewuProduct, ProductSearchResult
 from .enums import SalesData
 from .utils import Limiter
 
@@ -31,7 +31,7 @@ class ClientSession(aiohttp.ClientSession):
         return await super().request(method=method, url=url, **kwargs)
 
 
-class Poizon:
+class DEWU:
     BASE_API = 'https://poizon-api.com/api/dewu/'
 
     def __init__(self, api_key):
@@ -48,15 +48,15 @@ class Poizon:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self._session.close()
 
-    async def get_product_detail_with_price(self, spu_id: int) -> PoizonProduct:
+    async def get_product_detail_with_price(self, spu_id: int) -> DewuProduct:
         method = 'productDetailWithPrice'
         res = await self._session.request("GET", method, params={'spuId': spu_id})
-        return entities.PoizonProduct.from_json(await res.json())
+        return entities.DewuProduct.from_json(await res.json())
 
-    async def get_product_detail(self, spu_id: str) -> PoizonProduct:
+    async def get_product_detail(self, spu_id: str) -> DewuProduct:
         method = 'productDetail'
         res = await self._session.request("GET", method, params={'spuId': spu_id})
-        return entities.PoizonProduct.from_json(await res.json())
+        return entities.DewuProduct.from_json(await res.json())
 
     async def search_products_v1(self, keyword: str, limit: int = 50, page: int = 0):
         method = 'searchProducts'

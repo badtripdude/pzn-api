@@ -1,6 +1,8 @@
 from typing import List, Dict
+
 from dewu.base import JsonSerializable, NON_STATED
 from dewu.raw_data_handlers import ProductRaw
+
 
 class ProductCore(JsonSerializable):
     """
@@ -14,6 +16,7 @@ Attributes:
     article_number: article number of product
     spu_id: Standard Product Unit identifier
     """
+
     def __init__(self, additional_params: Dict[str, str],
                  category: str,
                  category_id: int,
@@ -43,6 +46,7 @@ Attributes:
                    article_number=raw_data.detail['articleNumber'],
                    spu_id=raw_data.detail["spuId"])
 
+
 class ProductStock(JsonSerializable):
     """
     keeps information about stock parameters of product.
@@ -57,6 +61,7 @@ Attributes:
     sku_ids: list of all Stock Keeping Unit identifiers (every single product identifiers in product card)
     variants: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
     """
+
     def __init__(self,
                  recommended_prices: Dict[int, int] | NON_STATED,
                  types_of_prices: Dict[int, Dict[int, int]] | NON_STATED,
@@ -129,10 +134,12 @@ Attributes:
                    sku_to_variant=sku_to_variant
                    )
 
+
 class ProductSizeTable(JsonSerializable):
     """
     keeps only the size table of a product
     """
+
     def __init__(self, size_table: List[int] | NON_STATED):
         self.size_table = size_table
 
@@ -146,10 +153,12 @@ class ProductSizeTable(JsonSerializable):
 
         return cls(size_table=size_table)
 
+
 class ProductImages(JsonSerializable):
     """
     keeps information about product images
     """
+
     def __init__(self,
                  general_logo_url: str,
                  sku_to_image_url: Dict,
@@ -181,10 +190,12 @@ class ProductImages(JsonSerializable):
                    sku_to_image_url=sku_to_image_url,
                    all_images=all_images)
 
+
 class ProductBrand(JsonSerializable):
     """
     keeps information about product brand params
     """
+
     def __init__(self,
                  brand_name: str,
                  brand_logo_url: str,

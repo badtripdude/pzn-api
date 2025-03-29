@@ -47,10 +47,12 @@ class ProductSearchCard(JsonSerializable):
             brand_logo_url=json_data.get('brandLogoUrl'),
         )
 
+
 class ProductSearchResult(JsonSerializable):
     """
     class represents search results data
     """
+
     def __init__(self,
                  total: int, page: int, last_id: str = None,
                  product_list: list[ProductSearchCard] = None,
@@ -69,7 +71,8 @@ class ProductSearchResult(JsonSerializable):
             product_list=[ProductSearchCard.from_json(data) for data in json_data.get('productList', [])]
         )
 
-class PoizonProduct(JsonSerializable):
+
+class DewuProduct(JsonSerializable):
     """
     class for parsing and keeping data from PoizonProductRaw
 
