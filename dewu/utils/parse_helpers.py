@@ -206,6 +206,6 @@ class ProductBrand(JsonSerializable):
 
     @classmethod
     def from_json(cls, raw_data: ProductRaw):
-        return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
-                   brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
-                   brand_id=raw_data.detail["brandId"])
+        return cls(brandbrand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"] if raw_data.brandRootInfo else NON_STATED,
+                   brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"]  if raw_data.brandRootInfo else NON_STATED,
+                   brand_id=raw_data.detail["brandId"]  if raw_data.brandRootInfo else NON_STATED)

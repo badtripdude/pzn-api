@@ -47,15 +47,15 @@ class ProductRaw(JsonSerializable):
             price=json_data.get('price'),
             detail=json_data.get('detail'),
             frontLabelSummaryDTO=json_data.get('frontLabelSummaryDTO'),
-            lastSold=json_data.get('lastSold'),
+            lastSold=json_data.get('lastSold', NON_STATED),
             image=json_data.get('image'),
-            spuGroupList=json_data.get('spuGroupList'),
-            saleProperties=json_data.get('saleProperties'),
+            spuGroupList=json_data.get('spuGroupList', NON_STATED),
+            saleProperties=json_data.get('saleProperties', NON_STATED),
             basicParam=json_data.get('basicParam'),
             favoriteData=json_data.get('favoriteData'),
             brandRootInfo=json_data.get('brandRootInfo'),
-            sizeDto=json_data.get('sizeDto'),
-            relateProductInfo=json_data.get('relateProductInfo'),
-            shareInfo=json_data.get('shareInfo'),
-            skus=json_data.get('skus')
+            sizeDto=json_data.get('sizeDto', NON_STATED),
+            relateProductInfo=json_data.get('relateProductInfo', NON_STATED),
+            shareInfo=json_data.get('shareInfo', NON_STATED),
+            skus=json_data.get('skus', NON_STATED)
         )
