@@ -220,7 +220,7 @@ Attributes:
     @classmethod
     def from_json(cls, raw_data: ProductRaw):
         if raw_data.brandRootInfo:
-            return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"] if raw_data.brandRootInfo else NON_STATED,
-                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"]  if raw_data.brandRootInfo else NON_STATED,
-                    brand_id=raw_data.detail["brandId"]  if raw_data.brandRootInfo else NON_STATED)
+            return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
+                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
+                    brand_id=raw_data.detail["brandId"])
         return cls(brand_name=NON_STATED, brand_logo_url=NON_STATED, brand_id=NON_STATED)
