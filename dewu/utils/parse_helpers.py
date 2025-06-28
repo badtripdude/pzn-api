@@ -59,7 +59,7 @@ Attributes:
     max_price: highest price of all the products in the product card
     stock: dict{sku_id: stock quantity}, relation between product sku_id and stock quantity
     sku_ids: list of all Stock Keeping Unit identifiers (every single product identifiers in product card)
-    variants: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
+    sku_to_variant: dict{sku_id: dict{variant_name: variant_value}} relation between sku_id and its price that depends on variant_value
     """
 
     def __init__(self,
@@ -138,6 +138,9 @@ Attributes:
 class ProductSizeTable(JsonSerializable):
     """
     keeps only the size table of a product
+
+Attributes:
+    size_table: list of different size tables, for ex. eu, uk, us size tables etc.
     """
 
     def __init__(self, size_table: List[int] | NON_STATED):
@@ -157,6 +160,11 @@ class ProductSizeTable(JsonSerializable):
 class ProductImages(JsonSerializable):
     """
     keeps information about product images
+
+Attributes:
+    general_logo_url: url of the general image of the product card
+    sku_to_image_url: dict, relation between sku_id and pictures of product with that sku_id
+    all_images: all images of the product card not bounded to anything
     """
 
     def __init__(self,
@@ -193,7 +201,12 @@ class ProductImages(JsonSerializable):
 
 class ProductBrand(JsonSerializable):
     """
-    keeps information about product brand params
+    keeps information about the brand of the product
+
+Attributes:
+    brand_name: the string name of the brand
+    brand_logo_url: url of the brand logo
+    brand_id: id of the brand
     """
 
     def __init__(self,
@@ -206,6 +219,8 @@ class ProductBrand(JsonSerializable):
 
     @classmethod
     def from_json(cls, raw_data: ProductRaw):
-        return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
-                   brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
-                   brand_id=raw_data.detail["brandId"])
+        if raw_data.brandRootInfo:
+            return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
+                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
+                    brand_id=raw_data.detail["brandId"])
+        return cls(brand_name=NON_STATED, brand_logo_url=NON_STATED, brand_id=NON_STATED)
