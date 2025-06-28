@@ -63,7 +63,7 @@ class DEWU:
         response = await self._session.request("GET", method, params={'keyword': keyword,
                                                                       'limit': limit,
                                                                       'page': page})
-        return await response.json()
+        return ProductSearchResult.from_json(await response.json())
 
     async def search_products_v2(self,
                                  keyword: str = None, lowest_price: int = None,
@@ -88,9 +88,9 @@ class DEWU:
             'page': page,
         }
         filtered_params = {k: v for k, v in params.items() if v is not None}
-        resp = await self._session.request('GET', method, params=filtered_params)
+        response = await self._session.request('GET', method, params=filtered_params)
 
-        return ProductSearchResult.from_json(await resp.json())
+        return ProductSearchResult.from_json(await response.json())
 
     async def extract_spu_id_by_url(self, url: str):
         url_pattern = re.compile(r'https?://[^\s]+')
