@@ -21,9 +21,11 @@ Attributes:
                  category: str,
                  category_id: int,
                  title: str,
+                 original_title: str,
                  description: str,
                  article_number: int,
                  spu_id: int):
+        self.original_title = original_title
         self.additional_params = additional_params
         self.category = category
         self.category_id = category_id
@@ -42,6 +44,7 @@ Attributes:
                    category=raw_data.detail["categoryName"],
                    category_id=raw_data.detail["categoryId"],
                    title=raw_data.detail["title"],
+                   original_title=raw_data.detail["originalTitle"],
                    description=raw_data.detail["desc"] if raw_data.detail["desc"] else NON_STATED,
                    article_number=raw_data.detail['articleNumber'],
                    spu_id=raw_data.detail["spuId"])
@@ -221,6 +224,6 @@ Attributes:
     def from_json(cls, raw_data: ProductRaw):
         if raw_data.brandRootInfo:
             return cls(brand_name=raw_data.brandRootInfo["brandItemList"][0]["brandName"],
-                    brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
-                    brand_id=raw_data.detail["brandId"])
+                       brand_logo_url=raw_data.brandRootInfo["brandItemList"][0]["brandLogo"],
+                       brand_id=raw_data.detail["brandId"])
         return cls(brand_name=NON_STATED, brand_logo_url=NON_STATED, brand_id=NON_STATED)
