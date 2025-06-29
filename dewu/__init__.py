@@ -53,6 +53,11 @@ class DEWU:
         res = await self._session.request("GET", method, params={'spuId': spu_id})
         return entities.DewuProduct.from_json(await res.json())
 
+    async def get_product_detail_with_price_v3(self, spu_id: int) -> dict:
+        method = 'productDetailV3WithPrice'
+        response = await self._session.request("GET", method, params={'spuId': spu_id})
+        return await response.json()
+
     async def get_product_detail(self, spu_id: str) -> DewuProduct:
         method = 'productDetail'
         res = await self._session.request("GET", method, params={'spuId': spu_id})
